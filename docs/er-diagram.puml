@@ -1,0 +1,150 @@
+@startuml
+' EduShareQA ER Diagram
+
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+hide methods
+
+Table(users, "users") {
+  +id : BIGINT <<PK>>
+  username : VARCHAR(64)
+  email : VARCHAR(128)
+  password_hash : VARCHAR(255)
+  full_name : VARCHAR(64)
+  avatar_url : VARCHAR(255)
+  school_id : VARCHAR(64)
+  department : VARCHAR(128)
+  status : ENUM
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+Table(roles, "roles") {
+  +id : BIGINT <<PK>>
+  code : VARCHAR(32)
+  name : VARCHAR(64)
+}
+
+Table(user_roles, "user_roles") {
+  +id : BIGINT <<PK>>
+  user_id : BIGINT <<FK>>
+  role_id : BIGINT <<FK>>
+  created_at : DATETIME
+}
+
+Table(courses, "courses") {
+  +id : BIGINT <<PK>>
+  code : VARCHAR(32)
+  name : VARCHAR(128)
+  description : TEXT
+  faculty : VARCHAR(128)
+  created_by : BIGINT <<FK>>
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+Table(course_teacher, "course_teacher") {
+  +id : BIGINT <<PK>>
+  course_id : BIGINT <<FK>>
+  teacher_id : BIGINT <<FK>>
+  assigned_at : DATETIME
+}
+
+Table(resources, "resources") {
+  +id : BIGINT <<PK>>
+  title : VARCHAR(128)
+  summary : TEXT
+  course_id : BIGINT <<FK>>
+  uploader_id : BIGINT <<FK>>
+  role_of_uploader : ENUM
+  file_path : VARCHAR(255)
+  file_type : VARCHAR(32)
+  file_size : BIGINT
+  download_count : INT
+  visibility : ENUM
+  status : ENUM
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+Table(questions, "questions") {
+  +id : BIGINT <<PK>>
+  course_id : BIGINT <<FK>>
+  student_id : BIGINT <<FK>>
+  title : VARCHAR(128)
+  content : TEXT
+  status : ENUM
+  answer_count : INT
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+Table(question_attachments, "question_attachments") {
+  +id : BIGINT <<PK>>
+  question_id : BIGINT <<FK>>
+  file_path : VARCHAR(255)
+  file_type : VARCHAR(32)
+  file_size : BIGINT
+  created_at : DATETIME
+}
+
+Table(answers, "answers") {
+  +id : BIGINT <<PK>>
+  question_id : BIGINT <<FK>>
+  teacher_id : BIGINT <<FK>>
+  content : TEXT
+  is_published : TINYINT
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+Table(answer_attachments, "answer_attachments") {
+  +id : BIGINT <<PK>>
+  answer_id : BIGINT <<FK>>
+  file_path : VARCHAR(255)
+  file_type : VARCHAR(32)
+  file_size : BIGINT
+  created_at : DATETIME
+}
+
+Table(notifications, "notifications") {
+  +id : BIGINT <<PK>>
+  recipient_id : BIGINT <<FK>>
+  type : ENUM
+  payload : JSON
+  is_read : TINYINT
+  read_at : DATETIME
+  created_at : DATETIME
+}
+
+Table(refresh_tokens, "refresh_tokens") {
+  +id : BIGINT <<PK>>
+  user_id : BIGINT <<FK>>
+  token : VARCHAR(255)
+  expires_at : DATETIME
+  created_at : DATETIME
+  revoked : TINYINT
+}
+
+users "1" -- "0..*" user_roles : assigns >
+roles "1" -- "0..*" user_roles : < maps
+
+users "1" -- "0..*" courses : creates >
+courses "1" -- "0..*" resources
+users "1" -- "0..*" resources : uploads >
+
+courses "1" -- "0..*" course_teacher
+users "1" -- "0..*" course_teacher : teachers >
+
+courses "1" -- "0..*" questions
+users "1" -- "0..*" questions : students >
+
+questions "1" -- "0..*" question_attachments
+questions "1" -- "0..*" answers
+users "1" -- "0..*" answers : teachers >
+answers "1" -- "0..*" answer_attachments
+
+users "1" -- "0..*" notifications : receives >
+
+users "1" -- "0..*" refresh_tokens
+@enduml
+

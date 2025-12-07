@@ -1,0 +1,497 @@
+openapi: 3.0.3
+info:
+  title: EduShareQA API
+  version: 0.1.0
+  description: >
+    Initial OpenAPI draft covering core auth, resource, QA, and notification
+    flows for EduShareQA MVP.
+servers:
+  - url: https://api.edushareqa.local/api
+    description: Production (placeholder)
+  - url: http://localhost:8080/api
+    description: Local development
+tags:
+  - name: Auth
+  - name: Profile
+  - name: Student Resources
+  - name: Student Questions
+  - name: Teacher Questions
+  - name: Notifications
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Student self-registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '409':
+          description: Username or email already exists
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with username/email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+        '401':
+          description: Invalid credentials
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token using refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+              required: [refreshToken]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+        '401':
+          description: Refresh token invalid or expired
+  /profile/me:
+    get:
+      tags: [Profile]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+    put:
+      tags: [Profile]
+      summary: Update profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+  /student/resources:
+    get:
+      tags: [Student Resources]
+      summary: List resources available to student
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - in: query
+          name: courseId
+          schema:
+            type: integer
+        - in: query
+          name: keyword
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedResourceList'
+    post:
+      tags: [Student Resources]
+      summary: Upload learning resource (single file)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                metadata:
+                  type: string
+                  description: JSON string matching ResourceMetadata
+                file:
+                  type: string
+                  format: binary
+              required: [metadata, file]
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource'
+  /student/questions:
+    get:
+      tags: [Student Questions]
+      summary: List questions created by student
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - in: query
+          name: courseId
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [OPEN, ANSWERED, CLOSED]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedQuestionList'
+    post:
+      tags: [Student Questions]
+      summary: Create question
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                metadata:
+                  type: string
+                  description: JSON string matching QuestionCreate
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+              required: [metadata]
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+  /teacher/questions:
+    get:
+      tags: [Teacher Questions]
+      summary: List questions for teacher courses
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - in: query
+          name: courseId
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [OPEN, ANSWERED, CLOSED]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedQuestionList'
+  /teacher/questions/{questionId}/answers:
+    post:
+      tags: [Teacher Questions]
+      summary: Answer a question
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: questionId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnswerCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Answer'
+        '403':
+          description: Teacher not assigned to course
+  /notifications/unread-count:
+    get:
+      tags: [Notifications]
+      summary: Get unread counts for current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  newAnswers:
+                    type: integer
+                  pendingQuestions:
+                    type: integer
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSizeParam:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 10
+  schemas:
+    BaseResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: ok
+        data:
+          type: object
+    RegisterRequest:
+      type: object
+      required: [username, email, password, fullName, schoolId]
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        fullName:
+          type: string
+        schoolId:
+          type: string
+        department:
+          type: string
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+    AuthTokens:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        fullName:
+          type: string
+        department:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+    UpdateProfileRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+        avatarUrl:
+          type: string
+        department:
+          type: string
+    Resource:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        summary:
+          type: string
+        courseId:
+          type: integer
+        uploaderId:
+          type: integer
+        visibility:
+          type: string
+          enum: [PUBLIC, COURSE_ONLY]
+        downloadCount:
+          type: integer
+        fileType:
+          type: string
+        fileSize:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+    ResourceMetadata:
+      type: object
+      required: [title, courseId]
+      properties:
+        title:
+          type: string
+        summary:
+          type: string
+        courseId:
+          type: integer
+        visibility:
+          type: string
+          enum: [PUBLIC, COURSE_ONLY]
+    PagedResourceList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Resource'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+        courseId:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        status:
+          type: string
+          enum: [OPEN, ANSWERED, CLOSED]
+        answerCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+    QuestionCreate:
+      type: object
+      required: [courseId, title, content]
+      properties:
+        courseId:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+    PagedQuestionList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+    Answer:
+      type: object
+      properties:
+        id:
+          type: integer
+        questionId:
+          type: integer
+        teacherId:
+          type: integer
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    AnswerCreate:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+

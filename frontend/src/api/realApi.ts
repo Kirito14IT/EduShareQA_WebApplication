@@ -98,11 +98,11 @@ export interface RealApi {
 
 const realApi: RealApi = {
   async login(payload) {
-    const { data } = await httpClient.post<AuthTokens>('/auth/login', payload)
-    const profile = await httpClient.get<UserProfile>('/profile/me', {
-      headers: { Authorization: `Bearer ${data.accessToken}` },
+    const { data: tokens } = await httpClient.post<AuthTokens>('/auth/login', payload)
+    const { data: profile } = await httpClient.get<UserProfile>('/profile/me', {
+      headers: { Authorization: `Bearer ${tokens.accessToken}` },
     })
-    return { tokens: data, user: profile.data }
+    return { tokens, user: profile }
   },
 
   async register(payload) {
@@ -111,7 +111,7 @@ const realApi: RealApi = {
   },
 
   async getResources(params) {
-    const { data } = await httpClient.get('/student/resources', { params })
+    const { data } = await httpClient.get<PagedResourceList>('/student/resources', { params })
     return data
   },
 
@@ -121,14 +121,14 @@ const realApi: RealApi = {
     if (file) {
       formData.append('file', file)
     }
-    const { data } = await httpClient.post('/student/resources', formData, {
+    const { data } = await httpClient.post<Resource>('/student/resources', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
     return data
   },
 
   async getQuestions(params) {
-    const { data } = await httpClient.get('/student/questions', { params })
+    const { data } = await httpClient.get<PagedQuestionList>('/student/questions', { params })
     return data
   },
 
@@ -138,14 +138,14 @@ const realApi: RealApi = {
     payload.attachments?.forEach((file) => {
       formData.append('attachments', file)
     })
-    const { data } = await httpClient.post('/student/questions', formData, {
+    const { data } = await httpClient.post<Question>('/student/questions', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
     return data
   },
 
   async getNotificationCounts() {
-    const { data } = await httpClient.get('/notifications/unread-count')
+    const { data } = await httpClient.get<NotificationCounts>('/notifications/unread-count')
     return data
   },
 
@@ -164,12 +164,12 @@ const realApi: RealApi = {
   },
 
   async getMyResources(params: ResourceQueryParams) {
-    const { data } = await httpClient.get('/student/resources/my', { params })
+    const { data } = await httpClient.get<PagedResourceList>('/student/resources/my', { params })
     return data
   },
 
   async searchQuestions(params: QuestionQueryParams) {
-    const { data } = await httpClient.get('/student/questions/search', { params })
+    const { data } = await httpClient.get<PagedQuestionList>('/student/questions/search', { params })
     return data
   },
 

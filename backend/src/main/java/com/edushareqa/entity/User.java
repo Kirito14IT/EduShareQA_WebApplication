@@ -20,6 +20,8 @@ public class User {
     private String avatarUrl;
     private String schoolId;
     private String department;
+    private String title;
+    private String bio;
     private String status; // ACTIVE, DISABLED
     
     private LocalDateTime createdAt;

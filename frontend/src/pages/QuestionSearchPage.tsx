@@ -3,22 +3,25 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
-import type { PagedQuestionList, QuestionQueryParams } from '../types/api'
-
-const courses = [
-  { id: 101, name: '线性代数' },
-  { id: 102, name: '大学英语' },
-  { id: 103, name: '概率统计' },
-]
-
-const teachers = [
-  { id: 2, name: 'Bob Teacher' },
-  { id: 3, name: 'Charlie Teacher' },
-]
+import type { PagedQuestionList, QuestionQueryParams, PagedCourseList, PagedTeacherList } from '../types/api'
 
 const QuestionSearchPage = () => {
   const navigate = useNavigate()
   const [filters, setFilters] = useState<QuestionQueryParams>({ page: 1, pageSize: 8 })
+
+  // Fetch courses
+  const { data: coursesData } = useQuery<PagedCourseList>({
+    queryKey: ['courses-list'],
+    queryFn: () => api.getCourses({ page: 1, pageSize: 100 }),
+  })
+  const courses = coursesData?.items ?? []
+
+  // Fetch teachers (Try to fetch, if it fails due to permission, it fails)
+  const { data: teachersData } = useQuery<PagedTeacherList>({
+    queryKey: ['teachers-list'],
+    queryFn: () => api.getTeachers({ page: 1, pageSize: 100 }),
+  })
+  const teachers = teachersData?.items ?? []
 
   const { data, isLoading } = useQuery<PagedQuestionList>({
     queryKey: ['questions', 'search', filters],

@@ -2,16 +2,18 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import api from '../api'
-
-const courses = [
-  { id: 101, name: '线性代数' },
-  { id: 102, name: '大学英语' },
-  { id: 103, name: '概率统计' },
-]
+import type { PagedCourseList } from '../types/api'
 
 const QuestionDetailPage = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
+
+  // Fetch courses to display name
+  const { data: coursesData } = useQuery<PagedCourseList>({
+    queryKey: ['courses-list'],
+    queryFn: () => api.getCourses({ page: 1, pageSize: 100 }),
+  })
+  const courses = coursesData?.items ?? []
 
   const { data: question, isLoading, error } = useQuery({
     queryKey: ['question', id],

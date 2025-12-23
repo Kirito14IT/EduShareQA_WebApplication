@@ -15,6 +15,17 @@ const QuestionManagementPage = () => {
     queryFn: () => api.getAllQuestions(filters),
   })
 
+  // Fetch courses for name lookup
+  const { data: coursesData } = useQuery({
+    queryKey: ['admin-courses-lookup'],
+    queryFn: () => api.getCourses({ page: 1, pageSize: 1000 }),
+  })
+  const courses = coursesData?.items ?? []
+
+  const getCourseName = (id: number) => {
+    return courses.find(c => c.id === id)?.name ?? `课程${id}`
+  }
+
   const deleteQuestionMutation = useMutation({
     mutationFn: api.adminDeleteQuestion,
     onSuccess: () => {
@@ -68,7 +79,7 @@ const QuestionManagementPage = () => {
                     transition={{ delay: index * 0.05 }}
                   >
                     <td>{question.title}</td>
-                    <td>课程{question.courseId}</td>
+                    <td>{getCourseName(question.courseId)}</td>
                     <td>
                       {question.status === 'OPEN'
                         ? '待回答'

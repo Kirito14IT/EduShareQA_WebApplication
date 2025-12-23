@@ -1,30 +1,41 @@
 import type { FormEvent } from 'react'
-import { useRef, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRef, useState, useEffect } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import api from '../api'
-
-const courses = [
-  { id: 101, name: '线性代数' },
-  { id: 102, name: '大学英语' },
-  { id: 103, name: '概率统计' },
-]
+import type { PagedCourseList } from '../types/api'
 
 const QuestionCreatePage = () => {
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Fetch courses
+  const { data: coursesData } = useQuery<PagedCourseList>({
+    queryKey: ['courses-list'],
+    queryFn: () => api.getCourses({ page: 1, pageSize: 100 }),
+  })
+  
+  const courses = coursesData?.items ?? []
+
   const [form, setForm] = useState({
-    courseId: courses[0].id,
+    courseId: 0,
     title: '',
     content: '',
   })
   const [attachments, setAttachments] = useState<File[]>([])
 
+  // Set default course ID when courses are loaded
+  useEffect(() => {
+    if (courses.length > 0 && form.courseId === 0) {
+      setForm(prev => ({ ...prev, courseId: courses[0].id }))
+    }
+  }, [courses, form.courseId])
+
   const { mutateAsync, isPending, error, isSuccess } = useMutation({
     mutationFn: api.createQuestion,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['questions'] })
-      setForm({ courseId: courses[0].id, title: '', content: '' })
+      setForm({ courseId: courses[0]?.id ?? 0, title: '', content: '' })
       setAttachments([])
       // 清空文件选择器
       if (fileInputRef.current) {

@@ -25,6 +25,13 @@ const CourseManagementPage = () => {
     queryFn: () => api.getCourses(filters),
   })
 
+  // Fetch teachers for assignment
+  const { data: teachersData } = useQuery({
+    queryKey: ['admin-teachers-list'],
+    queryFn: () => api.getTeachers({ page: 1, pageSize: 1000 }),
+  })
+  const teachers = teachersData?.items ?? []
+
   const createMutation = useMutation({
     mutationFn: api.createCourse,
     onSuccess: () => {
@@ -88,10 +95,14 @@ const CourseManagementPage = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (editingCourse) {
-      updateMutation.mutate({ id: editingCourse.id, payload: form })
-    } else {
-      createMutation.mutate(form)
+    try {
+      if (editingCourse) {
+        await updateMutation.mutateAsync({ id: editingCourse.id, payload: form })
+      } else {
+        await createMutation.mutateAsync(form)
+      }
+    } catch (error) {
+      console.error('Submit error:', error)
     }
   }
 
@@ -294,6 +305,36 @@ const CourseManagementPage = () => {
                     onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                   />
                 </label>
+                
+                <div className="full-width">
+                  <label style={{ display: 'block', marginBottom: '0.5rem' }}>授课教师</label>
+                  <div className="course-selection" style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '0.375rem', padding: '0.5rem' }}>
+                    {teachers.map((teacher) => (
+                      <motion.label
+                        key={teacher.id}
+                        className="course-checkbox"
+                        style={{ display: 'flex', alignItems: 'center', marginBottom: '0.25rem', cursor: 'pointer' }}
+                        whileHover={{ x: 2 }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={form.teacherIds?.includes(teacher.id) ?? false}
+                          onChange={(e) => {
+                            const currentIds = form.teacherIds ?? []
+                            const newIds = e.target.checked
+                              ? [...currentIds, teacher.id]
+                              : currentIds.filter((id) => id !== teacher.id)
+                            setForm((prev) => ({ ...prev, teacherIds: newIds }))
+                          }}
+                          style={{ marginRight: '0.5rem' }}
+                        />
+                        <span>{teacher.fullName} ({teacher.username})</span>
+                      </motion.label>
+                    ))}
+                    {teachers.length === 0 && <div className="muted small">暂无教师可选</div>}
+                  </div>
+                </div>
+
                 <div className="modal-actions">
                   <motion.button
                     type="button"
@@ -304,15 +345,19 @@ const CourseManagementPage = () => {
                   >
                     取消
                   </motion.button>
-                  <motion.button
+                  <button
                     type="submit"
                     className="primary-button"
                     disabled={createMutation.isPending || updateMutation.isPending}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: '100px'
+                    }}
                   >
                     {createMutation.isPending || updateMutation.isPending ? '保存中…' : '保存'}
-                  </motion.button>
+                  </button>
                 </div>
               </form>
             </motion.div>

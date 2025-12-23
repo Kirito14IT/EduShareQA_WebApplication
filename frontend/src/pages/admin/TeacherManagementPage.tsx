@@ -18,6 +18,7 @@ const TeacherManagementPage = () => {
     username: '',
     email: '',
     fullName: '',
+    password: '',
     department: '',
     title: '',
     bio: '',
@@ -88,7 +89,7 @@ const TeacherManagementPage = () => {
   })
 
   const resetForm = () => {
-    setForm({ username: '', email: '', fullName: '', department: '', title: '', bio: '', courseIds: [] })
+    setForm({ username: '', email: '', fullName: '', password: '', department: '', title: '', bio: '', courseIds: [] })
   }
 
   const handleOpenCreate = () => {
@@ -118,10 +119,34 @@ const TeacherManagementPage = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (editingTeacher) {
-      updateMutation.mutate({ id: editingTeacher.id, payload: form })
-    } else {
-      createMutation.mutate(form)
+    
+    // Manual validation
+    if (!form.username?.trim()) {
+      toast.error('请输入用户名')
+      return
+    }
+    if (!form.email?.trim()) {
+      toast.error('请输入邮箱')
+      return
+    }
+    if (!form.fullName?.trim()) {
+      toast.error('请输入姓名')
+      return
+    }
+    if (!editingTeacher && !form.password?.trim()) {
+      toast.error('请输入密码')
+      return
+    }
+
+    console.log('Submitting form:', form)
+    try {
+      if (editingTeacher) {
+        await updateMutation.mutateAsync({ id: editingTeacher.id, payload: form })
+      } else {
+        await createMutation.mutateAsync(form)
+      }
+    } catch (error) {
+      console.error('Submit error:', error)
     }
   }
 
@@ -313,24 +338,6 @@ const TeacherManagementPage = () => {
               </div>
               <form onSubmit={handleSubmit} className="form-grid">
                 <label>
-                  用户名 <span className="required">*</span>
-                  <input
-                    value={form.username}
-                    onChange={(e) => setForm((prev) => ({ ...prev, username: e.target.value }))}
-                    required
-                    disabled={!!editingTeacher}
-                  />
-                </label>
-                <label>
-                  邮箱 <span className="required">*</span>
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
-                    required
-                  />
-                </label>
-                <label>
                   姓名 <span className="required">*</span>
                   <input
                     value={form.fullName}
@@ -338,6 +345,40 @@ const TeacherManagementPage = () => {
                     required
                   />
                 </label>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <label style={{ flex: 1 }}>
+                    用户名 <span className="required">*</span>
+                    <input
+                      value={form.username}
+                      onChange={(e) => setForm((prev) => ({ ...prev, username: e.target.value }))}
+                      required
+                      disabled={!!editingTeacher}
+                      style={{ width: '100%' }}
+                    />
+                  </label>
+                  <label style={{ flex: 1 }}>
+                    邮箱 <span className="required">*</span>
+                    <input
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+                      required
+                      style={{ width: '100%' }}
+                    />
+                  </label>
+                </div>
+                {!editingTeacher && (
+                  <label>
+                    密码 <span className="required">*</span>
+                    <input
+                      type="password"
+                      value={form.password}
+                      onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
+                      required
+                      placeholder="初始登录密码"
+                    />
+                  </label>
+                )}
                 <label>
                   职称
                   <input
@@ -371,15 +412,19 @@ const TeacherManagementPage = () => {
                   >
                     取消
                   </motion.button>
-                  <motion.button
+                  <button
                     type="submit"
                     className="primary-button"
                     disabled={createMutation.isPending || updateMutation.isPending}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: '100px'
+                    }}
                   >
                     {createMutation.isPending || updateMutation.isPending ? '保存中…' : '保存'}
-                  </motion.button>
+                  </button>
                 </div>
               </form>
             </motion.div>

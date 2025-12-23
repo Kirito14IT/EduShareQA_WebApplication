@@ -50,7 +50,8 @@ public class FileService {
         String yearMonth = now.format(DateTimeFormatter.ofPattern("yyyy/MM"));
         String fullDir = baseDir + "/" + yearMonth;
         
-        Path dirPath = Paths.get(fullDir);
+        // Ensure absolute path to avoid Tomcat temp dir issues
+        Path dirPath = Paths.get(fullDir).toAbsolutePath().normalize();
         if (!Files.exists(dirPath)) {
             Files.createDirectories(dirPath);
         }

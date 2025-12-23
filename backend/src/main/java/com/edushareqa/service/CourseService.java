@@ -85,6 +85,42 @@ public class CourseService {
     }
     
     @Transactional
+    public com.edushareqa.dto.Course updateCourse(Long id, CourseCreate update) {
+        Course course = courseMapper.selectById(id);
+        if (course == null) {
+            throw new RuntimeException("课程不存在");
+        }
+        
+        course.setCode(update.getCode());
+        course.setName(update.getName());
+        course.setDescription(update.getDescription());
+        course.setFaculty(update.getFaculty());
+        course.setUpdatedAt(LocalDateTime.now());
+        
+        courseMapper.updateById(course);
+        
+        // 更新教师分配
+        if (update.getTeacherIds() != null) {
+            // 删除旧的分配
+            courseTeacherMapper.delete(new LambdaQueryWrapper<CourseTeacher>()
+                    .eq(CourseTeacher::getCourseId, id));
+            
+            // 添加新的分配
+            if (!update.getTeacherIds().isEmpty()) {
+                for (Long teacherId : update.getTeacherIds()) {
+                    CourseTeacher ct = new CourseTeacher();
+                    ct.setCourseId(id);
+                    ct.setTeacherId(teacherId);
+                    ct.setAssignedAt(LocalDateTime.now());
+                    courseTeacherMapper.insert(ct);
+                }
+            }
+        }
+        
+        return toCourse(course);
+    }
+    
+    @Transactional
     public void deleteCourse(Long id) {
         courseMapper.deleteById(id);
     }

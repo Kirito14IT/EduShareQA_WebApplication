@@ -91,7 +91,7 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
         
-        User user = userMapper.selectByUsername(request.getUsername());
+        User user = userMapper.selectByUsernameOrEmail(request.getUsername());
         List<String> roles = userRoleMapper.selectRoleCodesByUserId(user.getId());
         
         String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getUsername(), roles);

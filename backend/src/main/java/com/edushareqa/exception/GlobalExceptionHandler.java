@@ -15,6 +15,16 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Object> handleDataIntegrityViolationException(org.springframework.dao.DataIntegrityViolationException e) {
+        String message = e.getMessage();
+        if (message != null && message.contains("Duplicate entry")) {
+             return ApiResponse.error("数据已存在（可能是用户名、邮箱或编号重复）");
+        }
+        return ApiResponse.error("数据库操作失败: 违反数据完整性约束");
+    }
+
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Object> handleRuntimeException(RuntimeException e) {

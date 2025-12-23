@@ -3,13 +3,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
-import type { PagedResourceList, ResourceQueryParams } from '../types/api'
-
-const courses = [
-  { id: 101, name: '线性代数' },
-  { id: 102, name: '大学英语' },
-  { id: 103, name: '概率统计' },
-]
+import type { PagedResourceList, ResourceQueryParams, PagedCourseList } from '../types/api'
 
 // Mock uploader names - 实际应该从API获取
 const getUploaderName = (uploaderId: number): string => {
@@ -23,6 +17,13 @@ const getUploaderName = (uploaderId: number): string => {
 const ResourceListPage = () => {
   const navigate = useNavigate()
   const [filters, setFilters] = useState<ResourceQueryParams>({ page: 1, pageSize: 8 })
+
+  // Fetch courses
+  const { data: coursesData } = useQuery<PagedCourseList>({
+    queryKey: ['courses-list'],
+    queryFn: () => api.getCourses({ page: 1, pageSize: 100 }),
+  })
+  const courses = coursesData?.items ?? []
 
   const { data, isLoading, refetch, isFetching } = useQuery<PagedResourceList>({
     queryKey: ['resources', filters],

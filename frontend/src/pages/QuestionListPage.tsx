@@ -3,17 +3,18 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
-import type { PagedQuestionList, QuestionQueryParams } from '../types/api'
-
-const courses = [
-  { id: 101, name: '线性代数' },
-  { id: 102, name: '大学英语' },
-  { id: 103, name: '概率统计' },
-]
+import type { PagedQuestionList, QuestionQueryParams, PagedCourseList } from '../types/api'
 
 const QuestionListPage = () => {
   const navigate = useNavigate()
   const [filters, setFilters] = useState<QuestionQueryParams>({ page: 1, pageSize: 8 })
+
+  // Fetch courses
+  const { data: coursesData } = useQuery<PagedCourseList>({
+    queryKey: ['courses-list'],
+    queryFn: () => api.getCourses({ page: 1, pageSize: 100 }),
+  })
+  const courses = coursesData?.items ?? []
 
   const { data, isLoading } = useQuery<PagedQuestionList>({
     queryKey: ['questions', filters],

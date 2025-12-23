@@ -26,6 +26,9 @@ public class ResourceService {
     private ResourceMapper resourceMapper;
     
     @Autowired
+    private com.edushareqa.mapper.CourseMapper courseMapper;
+    
+    @Autowired
     private UserMapper userMapper;
     
     @Autowired
@@ -41,6 +44,11 @@ public class ResourceService {
         Long userId = jwtUtil.getUserIdFromToken(token);
         List<String> roles = jwtUtil.getRolesFromToken(token);
         
+        // 检查课程是否存在
+        if (courseMapper.selectById(courseId) == null) {
+            throw new RuntimeException("课程不存在: " + courseId);
+        }
+
         String roleOfUploader = roles.contains("TEACHER") ? "TEACHER" : "STUDENT";
         
         String filePath = null;
@@ -74,6 +82,29 @@ public class ResourceService {
         
         resourceMapper.insert(resource);
         return resource;
+    }
+
+    public PagedResponse<ResourceDetail> getAllResources(String keyword, Integer page, Integer pageSize) {
+        Page<Resource> pageObj = new Page<>(page, pageSize);
+        LambdaQueryWrapper<Resource> wrapper = new LambdaQueryWrapper<>();
+        
+        // Admin sees all resources, maybe filter out DELETED if needed, or show all
+        wrapper.ne(Resource::getStatus, "DELETED");
+        
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            wrapper.and(w -> w.like(Resource::getTitle, keyword)
+                    .or().like(Resource::getSummary, keyword));
+        }
+        
+        wrapper.orderByDesc(Resource::getCreatedAt);
+        
+        Page<Resource> result = resourceMapper.selectPage(pageObj, wrapper);
+        
+        List<ResourceDetail> items = result.getRecords().stream()
+                .map(this::toResourceDetail)
+                .collect(Collectors.toList());
+        
+        return PagedResponse.of(items, page, pageSize, result.getTotal());
     }
     
     public PagedResponse<ResourceDetail> getResources(Long courseId, String keyword,
@@ -127,6 +158,33 @@ public class ResourceService {
         resource.setStatus("DELETED");
         resource.setUpdatedAt(LocalDateTime.now());
         resourceMapper.updateById(resource);
+    }
+
+    @Transactional
+    public void adminDeleteResource(Long id) {
+        Resource resource = resourceMapper.selectById(id);
+        if (resource == null) {
+            throw new RuntimeException("资源不存在");
+        }
+        resource.setStatus("DELETED");
+        resource.setUpdatedAt(LocalDateTime.now());
+        resourceMapper.updateById(resource);
+    }
+    
+    @Transactional
+    public Resource adminUpdateResource(Long id, com.edushareqa.dto.ResourceMetadata metadata) {
+        Resource resource = resourceMapper.selectById(id);
+        if (resource == null) {
+            throw new RuntimeException("资源不存在");
+        }
+        
+        if (metadata.getTitle() != null) resource.setTitle(metadata.getTitle());
+        if (metadata.getSummary() != null) resource.setSummary(metadata.getSummary());
+        if (metadata.getVisibility() != null) resource.setVisibility(metadata.getVisibility());
+        
+        resource.setUpdatedAt(LocalDateTime.now());
+        resourceMapper.updateById(resource);
+        return resource;
     }
     
     private ResourceDetail toResourceDetail(Resource resource) {

@@ -15,6 +15,26 @@ const ResourceManagementPage = () => {
     queryFn: () => api.getAllResources(filters),
   })
 
+  // Fetch courses and users for name lookup
+  const { data: coursesData } = useQuery({
+    queryKey: ['admin-courses-lookup'],
+    queryFn: () => api.getCourses({ page: 1, pageSize: 1000 }),
+  })
+  const courses = coursesData?.items ?? []
+
+  // Note: We can't easily fetch all users, so we might need to rely on what's available or fetch individually.
+  // However, for admin list, ideally the backend should return names.
+  // Assuming backend returns uploaderName in the list, if not we fallback to ID.
+  // Looking at Resource interface in api.ts, it doesn't have uploaderName by default, only ResourceDetail has.
+  // Let's check api.ts Resource interface again.
+  // Yes, Resource interface extends ResourceMetadata, has uploaderId. ResourceDetail adds uploaderName.
+  // If the admin list API returns Resource objects without names, we show IDs.
+  // Let's try to find course name at least.
+
+  const getCourseName = (id: number) => {
+    return courses.find(c => c.id === id)?.name ?? `课程${id}`
+  }
+
   const deleteMutation = useMutation({
     mutationFn: api.adminDeleteResource,
     onSuccess: () => {
@@ -80,7 +100,7 @@ const ResourceManagementPage = () => {
                   >
                     <td>{resource.title}</td>
                     <td>用户{resource.uploaderId}</td>
-                    <td>课程{resource.courseId}</td>
+                    <td>{getCourseName(resource.courseId)}</td>
                     <td>{resource.downloadCount}</td>
                     <td>
                       <div className="action-buttons">

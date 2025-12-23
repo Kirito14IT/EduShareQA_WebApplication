@@ -1,3 +1,5 @@
+import type { ReactNode } from "react"
+
 export interface AuthTokens {
   accessToken: string
   refreshToken: string
@@ -154,6 +156,7 @@ export interface CourseQueryParams {
 }
 
 export interface Teacher {
+  name: ReactNode
   id: number
   username: string
   email: string
@@ -172,6 +175,7 @@ export interface TeacherCreate {
   username: string
   email: string
   fullName: string
+  password?: string
   department?: string
   title?: string
   bio?: string

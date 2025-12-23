@@ -34,6 +34,14 @@ public class AdminCourseController {
         return ApiResponse.success(course);
     }
     
+    @PutMapping("/{id}")
+    public ApiResponse<Course> updateCourse(
+            @PathVariable Long id,
+            @RequestBody CourseCreate update) {
+        Course course = courseService.updateCourse(id, update);
+        return ApiResponse.success(course);
+    }
+    
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteCourse(@PathVariable Long id) {
         courseService.deleteCourse(id);

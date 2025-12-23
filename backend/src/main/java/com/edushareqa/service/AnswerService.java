@@ -113,6 +113,11 @@ public class AnswerService {
         
         answerMapper.deleteById(id);
     }
+
+    @Transactional
+    public void adminDeleteAnswer(Long id) {
+        answerMapper.deleteById(id);
+    }
     
     private AnswerDetail toAnswerDetail(Answer answer) {
         AnswerDetail detail = new AnswerDetail();

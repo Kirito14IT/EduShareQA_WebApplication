@@ -102,6 +102,28 @@ public class QuestionService {
         Page<Question> result = questionMapper.selectPage(pageObj, wrapper);
         return PagedResponse.of(result.getRecords(), page, pageSize, result.getTotal());
     }
+
+    public PagedResponse<Question> getAllQuestions(Long courseId, String status, String keyword,
+                                                  Integer page, Integer pageSize) {
+        Page<Question> pageObj = new Page<>(page, pageSize);
+        LambdaQueryWrapper<Question> wrapper = new LambdaQueryWrapper<>();
+        
+        if (courseId != null) {
+            wrapper.eq(Question::getCourseId, courseId);
+        }
+        if (status != null) {
+            wrapper.eq(Question::getStatus, status);
+        }
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            wrapper.and(w -> w.like(Question::getTitle, keyword)
+                    .or().like(Question::getContent, keyword));
+        }
+        
+        wrapper.orderByDesc(Question::getCreatedAt);
+        
+        Page<Question> result = questionMapper.selectPage(pageObj, wrapper);
+        return PagedResponse.of(result.getRecords(), page, pageSize, result.getTotal());
+    }
     
     public QuestionDetail getQuestionById(Long id) {
         Question question = questionMapper.selectById(id);
@@ -155,6 +177,11 @@ public class QuestionService {
             throw new RuntimeException("无权删除此问题");
         }
         
+        questionMapper.deleteById(id);
+    }
+
+    @Transactional
+    public void adminDeleteQuestion(Long id) {
         questionMapper.deleteById(id);
     }
     

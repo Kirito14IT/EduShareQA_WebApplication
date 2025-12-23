@@ -3,8 +3,8 @@ spring:
     name: edushareqa-backend
   
   datasource:
-    url: jdbc:mysql://localhost:3308/edushareqa?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: root
+    url: jdbc:mysql://118.89.81.131:3306/edushareqa?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: clouduser
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
     
@@ -39,7 +39,7 @@ mybatis-plus:
 
 # JWT配置
 jwt:
-  secret: ${JWT_SECRET:CHANGE_ME}
+  secret: ${JWT_SECRET:CHANGE_ME_TO_A_VERY_LONG_SECRET_KEY_AT_LEAST_32_BYTES}
   access-token-expiration: 900000  # 15分钟（毫秒）
   refresh-token-expiration: 604800000  # 7天（毫秒）
 

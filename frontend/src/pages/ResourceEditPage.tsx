@@ -4,24 +4,33 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import api from '../api'
-import type { ResourceMetadata } from '../types/api'
-
-const courses = [
-  { id: 101, name: '线性代数' },
-  { id: 102, name: '大学英语' },
-  { id: 103, name: '概率统计' },
-]
+import type { ResourceMetadata, PagedCourseList } from '../types/api'
 
 const ResourceEditPage = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { id } = useParams<{ id: string }>()
+
+  // Fetch courses
+  const { data: coursesData } = useQuery<PagedCourseList>({
+    queryKey: ['courses-list'],
+    queryFn: () => api.getCourses({ page: 1, pageSize: 100 }),
+  })
+  const courses = coursesData?.items ?? []
+
   const [form, setForm] = useState<ResourceMetadata>({
     title: '',
     summary: '',
-    courseId: 101,
+    courseId: 0,
     visibility: 'COURSE_ONLY',
   })
+
+  // Set default course ID when courses are loaded
+  useEffect(() => {
+    if (courses.length > 0 && form.courseId === 0) {
+      setForm(prev => ({ ...prev, courseId: courses[0].id }))
+    }
+  }, [courses, form.courseId])
 
   const { data: resource, isLoading } = useQuery({
     queryKey: ['resource', id],

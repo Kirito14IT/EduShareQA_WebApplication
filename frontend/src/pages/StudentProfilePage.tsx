@@ -3,13 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
-import type { PagedResourceList, PagedQuestionList, ResourceQueryParams, QuestionQueryParams } from '../types/api'
-
-const courses = [
-  { id: 101, name: '线性代数' },
-  { id: 102, name: '大学英语' },
-  { id: 103, name: '概率统计' },
-]
+import type { PagedResourceList, PagedQuestionList, ResourceQueryParams, QuestionQueryParams, PagedCourseList } from '../types/api'
 
 const StudentProfilePage = () => {
   const navigate = useNavigate()
@@ -17,6 +11,13 @@ const StudentProfilePage = () => {
   const [activeTab, setActiveTab] = useState<'resources' | 'questions'>('resources')
   const [resourceFilters, setResourceFilters] = useState<ResourceQueryParams>({ page: 1, pageSize: 8 })
   const [questionFilters, setQuestionFilters] = useState<QuestionQueryParams>({ page: 1, pageSize: 8 })
+
+  // Fetch courses
+  const { data: coursesData } = useQuery<PagedCourseList>({
+    queryKey: ['courses-list'],
+    queryFn: () => api.getCourses({ page: 1, pageSize: 100 }),
+  })
+  const courses = coursesData?.items ?? []
 
   const { data: myResources, isLoading: resourcesLoading } = useQuery<PagedResourceList>({
     queryKey: ['my-resources', resourceFilters],

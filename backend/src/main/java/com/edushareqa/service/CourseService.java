@@ -6,8 +6,10 @@ import com.edushareqa.dto.CourseCreate;
 import com.edushareqa.dto.PagedResponse;
 import com.edushareqa.entity.Course;
 import com.edushareqa.entity.CourseTeacher;
+import com.edushareqa.entity.User;
 import com.edushareqa.mapper.CourseMapper;
 import com.edushareqa.mapper.CourseTeacherMapper;
+import com.edushareqa.mapper.UserMapper;
 import com.edushareqa.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +29,9 @@ public class CourseService {
     
     @Autowired
     private CourseTeacherMapper courseTeacherMapper;
+
+    @Autowired
+    private UserMapper userMapper;
     
     @Autowired
     private JwtUtil jwtUtil;
@@ -133,9 +139,27 @@ public class CourseService {
         course.setDescription(entity.getDescription());
         course.setFaculty(entity.getFaculty());
         course.setCreatedAt(entity.getCreatedAt() == null ? null : entity.getCreatedAt().toString());
+        course.setUpdatedAt(entity.getUpdatedAt() == null ? null : entity.getUpdatedAt().toString());
         
         List<Long> teacherIds = courseTeacherMapper.selectTeacherIdsByCourseId(entity.getId());
         course.setTeacherIds(teacherIds);
+
+        if (teacherIds != null && !teacherIds.isEmpty()) {
+            Map<Long, User> teacherById = userMapper.selectBatchIds(teacherIds).stream()
+                    .collect(Collectors.toMap(User::getId, u -> u, (a, b) -> a));
+
+            List<String> teacherNames = teacherIds.stream()
+                    .map(teacherId -> {
+                        User user = teacherById.get(teacherId);
+                        if (user == null) return String.valueOf(teacherId);
+                        if (user.getFullName() != null && !user.getFullName().trim().isEmpty()) {
+                            return user.getFullName();
+                        }
+                        return user.getUsername();
+                    })
+                    .collect(Collectors.toList());
+            course.setTeacherNames(teacherNames);
+        }
         
         return course;
     }

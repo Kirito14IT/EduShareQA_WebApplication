@@ -140,6 +140,17 @@ public class ResourceService {
         return toResourceDetail(resource);
     }
     
+    public Resource getResourceForDownload(Long id) {
+        Resource resource = resourceMapper.selectById(id);
+        if (resource == null || !"ACTIVE".equals(resource.getStatus())) {
+            throw new RuntimeException("资源不存在");
+        }
+        
+        resource.setDownloadCount(resource.getDownloadCount() + 1);
+        resourceMapper.updateById(resource);
+        return resource;
+    }
+
     @Transactional
     public void deleteResource(HttpServletRequest request, Long id) {
         String token = getTokenFromRequest(request);
@@ -199,6 +210,8 @@ public class ResourceService {
         detail.setFileSize(resource.getFileSize());
         detail.setVisibility(resource.getVisibility());
         detail.setCreatedAt(resource.getCreatedAt().toString());
+        // Set relative URL, frontend should prepend API base URL
+        detail.setFileUrl("/student/resources/" + resource.getId() + "/download");
         
         User uploader = userMapper.selectById(resource.getUploaderId());
         if (uploader != null) {

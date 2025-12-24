@@ -72,6 +72,15 @@ public class FileService {
         return yearMonth + "/" + filename;
     }
     
+    public File getResourceFile(String filePath) {
+        if (filePath == null) return null;
+        File file = new File(resourcesDir, filePath);
+        if (file.exists() && file.isFile()) {
+            return file;
+        }
+        return null;
+    }
+
     public File getFile(String filePath) {
         // 尝试多个可能的目录
         String[] baseDirs = {resourcesDir, questionAttachmentsDir, answerAttachmentsDir};

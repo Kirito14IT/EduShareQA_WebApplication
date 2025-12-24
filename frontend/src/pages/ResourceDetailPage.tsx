@@ -1,12 +1,16 @@
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import api from '../api'
+import env from '../config/env'
+import { useAuthStore } from '../store/authStore'
 import type { PagedCourseList } from '../types/api'
 
 const ResourceDetailPage = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
+  const token = useAuthStore((state) => state.tokens?.accessToken)
 
   // Fetch courses
   const { data: coursesData } = useQuery<PagedCourseList>({
@@ -20,6 +24,22 @@ const ResourceDetailPage = () => {
     queryFn: () => api.getResourceById(Number(id)),
     enabled: !!id,
   })
+
+  const downloadUrl = useMemo(() => {
+    if (!resource?.fileUrl) return undefined
+    if (resource.fileUrl.startsWith('http')) return resource.fileUrl
+    // env.apiBaseUrl usually includes /api, and fileUrl starts with /student...
+    // We need to ensure we don't double slash or miss slash, but usually strict concat is risky if base has trailing slash.
+    // env.apiBaseUrl defaults to http://localhost:8080/api (no trailing slash)
+    const baseUrl = env.apiBaseUrl.endsWith('/') ? env.apiBaseUrl.slice(0, -1) : env.apiBaseUrl
+    const path = resource.fileUrl.startsWith('/') ? resource.fileUrl : '/' + resource.fileUrl
+    
+    // Append token if available
+    if (token) {
+        return `${baseUrl}${path}?token=${token}`
+    }
+    return `${baseUrl}${path}`
+  }, [resource, token])
 
   if (isLoading) {
     return <div className="placeholder">加载资源详情…</div>
@@ -100,10 +120,10 @@ const ResourceDetailPage = () => {
           </div>
         )}
 
-        {resource.fileUrl && (
+        {downloadUrl && (
           <div className="detail-section">
             <motion.a
-              href={resource.fileUrl}
+              href={downloadUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="download-button"

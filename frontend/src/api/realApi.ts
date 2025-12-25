@@ -134,7 +134,9 @@ const realApi: RealApi = {
 
   async createQuestion(payload) {
     const formData = new FormData()
-    formData.append('metadata', JSON.stringify(payload))
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { attachments, ...metadata } = payload
+    formData.append('metadata', JSON.stringify(metadata))
     payload.attachments?.forEach((file) => {
       formData.append('attachments', file)
     })

@@ -71,6 +71,19 @@ const QuestionListPage = () => {
             <option value="CLOSED">已关闭</option>
           </select>
         </label>
+
+        <label>
+          搜索
+          <input
+            type="text"
+            placeholder="关键词..."
+            value={filters.keyword ?? ''}
+            onChange={(e) =>
+              handleFilterChange({ keyword: e.target.value || undefined })
+            }
+            style={{ width: '200px' }}
+          />
+        </label>
       </div>
 
       {isLoading ? (

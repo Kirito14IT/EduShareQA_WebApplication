@@ -150,7 +150,7 @@ CREATE TABLE IF NOT EXISTS `answer_attachments` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
     `answer_id` BIGINT NOT NULL COMMENT '回答ID',
     `file_path` VARCHAR(255) NOT NULL COMMENT '文件路径',
-    `file_type` VARCHAR(32) DEFAULT NULL COMMENT '文件类型',
+    `file_type` VARCHAR(128) DEFAULT NULL COMMENT '文件类型',
     `file_size` BIGINT DEFAULT 0 COMMENT '文件大小（字节）',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     FOREIGN KEY (`answer_id`) REFERENCES `answers`(`id`) ON DELETE CASCADE,

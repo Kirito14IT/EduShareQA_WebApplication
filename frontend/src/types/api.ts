@@ -111,7 +111,7 @@ export interface Answer {
 export interface QuestionDetail extends Question {
   studentId: number
   studentName?: string
-  answers?: Answer[]
+  answers?: AnswerDetail[]
   attachments?: Array<{ id: number; filePath: string; fileType: string }>
 }
 

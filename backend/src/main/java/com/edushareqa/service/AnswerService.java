@@ -7,6 +7,7 @@ import com.edushareqa.entity.AnswerAttachment;
 import com.edushareqa.entity.Question;
 import com.edushareqa.mapper.AnswerAttachmentMapper;
 import com.edushareqa.mapper.AnswerMapper;
+import com.edushareqa.mapper.CourseTeacherMapper;
 import com.edushareqa.mapper.QuestionMapper;
 import com.edushareqa.mapper.UserMapper;
 import com.edushareqa.util.JwtUtil;
@@ -43,6 +44,9 @@ public class AnswerService {
     
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private CourseTeacherMapper courseTeacherMapper;
     
     @Transactional
     public AnswerDetail createAnswer(HttpServletRequest request, Long questionId,
@@ -53,6 +57,12 @@ public class AnswerService {
         Question question = questionMapper.selectById(questionId);
         if (question == null) {
             throw new RuntimeException("问题不存在");
+        }
+
+        // 检查权限：教师是否教授该课程
+        List<Long> courseIds = courseTeacherMapper.selectCourseIdsByTeacherId(teacherId);
+        if (!courseIds.contains(question.getCourseId())) {
+            throw new RuntimeException("您没有权限回答此问题（非本课程教师）");
         }
         
         Answer answer = new Answer();

@@ -2,11 +2,20 @@ package com.edushareqa.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.edushareqa.dto.AnswerDetail;
 import com.edushareqa.dto.PagedResponse;
 import com.edushareqa.dto.QuestionDetail;
+import com.edushareqa.dto.TeacherQuestion;
+import com.edushareqa.entity.Answer;
+import com.edushareqa.entity.AnswerAttachment;
+import com.edushareqa.entity.Course;
 import com.edushareqa.entity.Question;
 import com.edushareqa.entity.QuestionAttachment;
 import com.edushareqa.entity.User;
+import com.edushareqa.mapper.AnswerAttachmentMapper;
+import com.edushareqa.mapper.AnswerMapper;
+import com.edushareqa.mapper.CourseMapper;
+import com.edushareqa.mapper.CourseTeacherMapper;
 import com.edushareqa.mapper.QuestionAttachmentMapper;
 import com.edushareqa.mapper.QuestionMapper;
 import com.edushareqa.mapper.UserMapper;
@@ -33,12 +42,24 @@ public class QuestionService {
     
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private CourseMapper courseMapper;
+
+    @Autowired
+    private CourseTeacherMapper courseTeacherMapper;
     
     @Autowired
     private FileService fileService;
     
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private AnswerMapper answerMapper;
+
+    @Autowired
+    private AnswerAttachmentMapper answerAttachmentMapper;
     
     @Transactional
     public Question createQuestion(HttpServletRequest request, Long courseId,
@@ -81,7 +102,7 @@ public class QuestionService {
         return question;
     }
     
-    public PagedResponse<Question> getQuestions(Long courseId, String status,
+    public PagedResponse<Question> getQuestions(Long courseId, String status, String keyword,
                                                Integer page, Integer pageSize, HttpServletRequest request) {
         String token = getTokenFromRequest(request);
         Long userId = jwtUtil.getUserIdFromToken(token);
@@ -96,11 +117,48 @@ public class QuestionService {
         if (status != null) {
             wrapper.eq(Question::getStatus, status);
         }
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            wrapper.and(w -> w.like(Question::getTitle, keyword)
+                    .or().like(Question::getContent, keyword));
+        }
         
         wrapper.orderByDesc(Question::getCreatedAt);
         
         Page<Question> result = questionMapper.selectPage(pageObj, wrapper);
         return PagedResponse.of(result.getRecords(), page, pageSize, result.getTotal());
+    }
+
+    @Transactional
+    public Question updateQuestion(HttpServletRequest request, Long id, Long courseId, String title, String content) {
+        String token = getTokenFromRequest(request);
+        Long userId = jwtUtil.getUserIdFromToken(token);
+        
+        Question question = questionMapper.selectById(id);
+        if (question == null) {
+            throw new RuntimeException("问题不存在");
+        }
+        
+        if (!question.getStudentId().equals(userId)) {
+            throw new RuntimeException("无权修改此问题");
+        }
+        
+        if (!"OPEN".equals(question.getStatus())) {
+            throw new RuntimeException("问题已被回答或关闭，无法修改");
+        }
+        
+        if (courseId != null) {
+            question.setCourseId(courseId);
+        }
+        if (title != null && !title.trim().isEmpty()) {
+            question.setTitle(title);
+        }
+        if (content != null && !content.trim().isEmpty()) {
+            question.setContent(content);
+        }
+        question.setUpdatedAt(LocalDateTime.now());
+        
+        questionMapper.updateById(question);
+        return question;
     }
 
     public PagedResponse<Question> getAllQuestions(Long courseId, String status, String keyword,
@@ -124,7 +182,76 @@ public class QuestionService {
         Page<Question> result = questionMapper.selectPage(pageObj, wrapper);
         return PagedResponse.of(result.getRecords(), page, pageSize, result.getTotal());
     }
+
+    public PagedResponse<TeacherQuestion> getTeacherQuestions(String status, Integer page, Integer pageSize, HttpServletRequest request) {
+        String token = getTokenFromRequest(request);
+        Long teacherId = jwtUtil.getUserIdFromToken(token);
+
+        // 获取教师教授的课程
+        List<Long> courseIds = courseTeacherMapper.selectCourseIdsByTeacherId(teacherId);
+        if (courseIds.isEmpty()) {
+            return PagedResponse.of(new ArrayList<>(), page, pageSize, 0L);
+        }
+
+        Page<Question> pageObj = new Page<>(page, pageSize);
+        LambdaQueryWrapper<Question> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(Question::getCourseId, courseIds);
+
+        if (status != null && !status.trim().isEmpty()) {
+            wrapper.eq(Question::getStatus, status);
+        }
+
+        wrapper.orderByDesc(Question::getCreatedAt);
+
+        Page<Question> result = questionMapper.selectPage(pageObj, wrapper);
+        
+        // 转换为 TeacherQuestion DTO
+        List<TeacherQuestion> items = result.getRecords().stream().map(q -> {
+            TeacherQuestion dto = new TeacherQuestion();
+            dto.setId(q.getId());
+            dto.setCourseId(q.getCourseId());
+            dto.setStudentId(q.getStudentId());
+            dto.setTitle(q.getTitle());
+            dto.setContent(q.getContent());
+            dto.setStatus(q.getStatus());
+            dto.setAnswerCount(q.getAnswerCount());
+            dto.setCreatedAt(q.getCreatedAt());
+            dto.setUpdatedAt(q.getUpdatedAt());
+            
+            User student = userMapper.selectById(q.getStudentId());
+            if (student != null) {
+                dto.setStudentName(student.getFullName());
+            }
+            
+            Course course = courseMapper.selectById(q.getCourseId());
+            if (course != null) {
+                dto.setCourseName(course.getName());
+            }
+            
+            return dto;
+        }).collect(Collectors.toList());
+
+        return PagedResponse.of(items, page, pageSize, result.getTotal());
+    }
     
+    public QuestionDetail getTeacherQuestionById(Long id, HttpServletRequest request) {
+        String token = getTokenFromRequest(request);
+        Long teacherId = jwtUtil.getUserIdFromToken(token);
+
+        Question question = questionMapper.selectById(id);
+        if (question == null) {
+            throw new RuntimeException("问题不存在");
+        }
+
+        // 检查权限：教师是否教授该课程
+        List<Long> courseIds = courseTeacherMapper.selectCourseIdsByTeacherId(teacherId);
+        if (!courseIds.contains(question.getCourseId())) {
+            throw new RuntimeException("您没有权限查看此问题（非本课程教师）");
+        }
+
+        return getQuestionById(id);
+    }
+
     public QuestionDetail getQuestionById(Long id) {
         Question question = questionMapper.selectById(id);
         if (question == null) {
@@ -153,6 +280,46 @@ public class QuestionService {
         detail.setAttachments(attachments.stream()
                 .map(a -> {
                     com.edushareqa.dto.QuestionAttachmentDTO dto = new com.edushareqa.dto.QuestionAttachmentDTO();
+                    dto.setId(a.getId());
+                    dto.setFilePath(a.getFilePath());
+                    dto.setFileType(a.getFileType());
+                    return dto;
+                })
+                .collect(Collectors.toList()));
+        
+        // 加载回答
+        LambdaQueryWrapper<Answer> answerWrapper = new LambdaQueryWrapper<>();
+        answerWrapper.eq(Answer::getQuestionId, id);
+        // 只显示已发布的回答
+        answerWrapper.eq(Answer::getIsPublished, true);
+        answerWrapper.orderByAsc(Answer::getCreatedAt);
+        List<Answer> answers = answerMapper.selectList(answerWrapper);
+        
+        detail.setAnswers(answers.stream().map(this::toAnswerDetail).collect(Collectors.toList()));
+
+        return detail;
+    }
+
+    private AnswerDetail toAnswerDetail(Answer answer) {
+        AnswerDetail detail = new AnswerDetail();
+        detail.setId(answer.getId());
+        detail.setQuestionId(answer.getQuestionId());
+        detail.setTeacherId(answer.getTeacherId());
+        detail.setContent(answer.getContent());
+        detail.setCreatedAt(answer.getCreatedAt().toString());
+        
+        User teacher = userMapper.selectById(answer.getTeacherId());
+        if (teacher != null) {
+            detail.setTeacherName(teacher.getFullName());
+        }
+        
+        // 加载附件
+        LambdaQueryWrapper<AnswerAttachment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(AnswerAttachment::getAnswerId, answer.getId());
+        List<AnswerAttachment> attachments = answerAttachmentMapper.selectList(wrapper);
+        detail.setAttachments(attachments.stream()
+                .map(a -> {
+                    com.edushareqa.dto.AnswerAttachmentDTO dto = new com.edushareqa.dto.AnswerAttachmentDTO();
                     dto.setId(a.getId());
                     dto.setFilePath(a.getFilePath());
                     dto.setFileType(a.getFileType());

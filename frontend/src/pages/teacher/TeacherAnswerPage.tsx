@@ -14,6 +14,7 @@ const TeacherAnswerPage = () => {
   const { id } = useParams<{ id: string }>()
   const [answerContent, setAnswerContent] = useState('')
   const [attachments, setAttachments] = useState<File[]>([])
+  const [isSuccess, setIsSuccess] = useState(false)
 
   const { data: question, isLoading } = useQuery({
     queryKey: ['teacher-question', id],
@@ -30,6 +31,8 @@ const TeacherAnswerPage = () => {
       queryClient.invalidateQueries({ queryKey: ['teacher-dashboard-stats'] })
       setAnswerContent('')
       setAttachments([])
+      setIsSuccess(true)
+      setTimeout(() => setIsSuccess(false), 3000)
     },
     onError: (error: Error) => {
       toast.error(error.message || '提交失败')
@@ -120,6 +123,16 @@ const TeacherAnswerPage = () => {
               onChange={(e) => setAttachments(Array.from(e.target.files || []))}
             />
           </label>
+          {isSuccess && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="success-box"
+              style={{ marginBottom: '1rem' }}
+            >
+              回答已成功提交！
+            </motion.div>
+          )}
           <motion.button
             type="submit"
             className="primary-button"

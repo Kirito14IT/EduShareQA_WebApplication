@@ -87,11 +87,17 @@ public class AuthService {
     }
     
     public AuthTokens login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
-        
+        // 先查询用户是否存在
         User user = userMapper.selectByUsernameOrEmail(request.getUsername());
+        if (user == null) {
+            throw new RuntimeException("不存在用户");
+        }
+
+        // 再验证密码
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            throw new RuntimeException("密码错误");
+        }
+        
         List<String> roles = userRoleMapper.selectRoleCodesByUserId(user.getId());
         
         String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getUsername(), roles);

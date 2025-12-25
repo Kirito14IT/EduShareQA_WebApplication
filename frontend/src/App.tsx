@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './components/layout/DashboardLayout'
 import LoginPage from './pages/LoginPage'
@@ -27,7 +28,9 @@ import TeacherAnswerPage from './pages/teacher/TeacherAnswerPage'
 
 function App() {
   return (
-    <Routes>
+    <>
+      <Toaster position="top-center" reverseOrder={false} />
+      <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
@@ -65,7 +68,8 @@ function App() {
       </Route>
 
       <Route path="*" element={<Navigate to="/resources" replace />} />
-    </Routes>
+      </Routes>
+    </>
   )
 }
 

@@ -24,11 +24,12 @@ public class StudentQuestionController {
     public ApiResponse<PagedResponse<Question>> getQuestions(
             @RequestParam(required = false) Long courseId,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize,
             HttpServletRequest request) {
         PagedResponse<Question> result = questionService.getQuestions(
-                courseId, status, page, pageSize, request);
+                courseId, status, keyword, page, pageSize, request);
         return ApiResponse.success(result);
     }
     
@@ -53,6 +54,16 @@ public class StudentQuestionController {
         } catch (Exception e) {
             throw new RuntimeException("创建问题失败: " + e.getMessage());
         }
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<Question> updateQuestion(
+            @PathVariable Long id,
+            @RequestBody com.edushareqa.dto.QuestionCreate meta,
+            HttpServletRequest request) {
+        Question question = questionService.updateQuestion(
+                request, id, meta.getCourseId(), meta.getTitle(), meta.getContent());
+        return ApiResponse.success(question);
     }
     
     @DeleteMapping("/{id}")

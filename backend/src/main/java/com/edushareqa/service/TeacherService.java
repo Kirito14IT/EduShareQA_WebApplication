@@ -170,7 +170,7 @@ public class TeacherService {
                     .or().like(User::getEmail, keyword));
         }
         if (department != null && !department.trim().isEmpty()) {
-            wrapper.eq(User::getDepartment, department);
+            wrapper.like(User::getDepartment, department);
         }
         
         wrapper.orderByDesc(User::getCreatedAt);

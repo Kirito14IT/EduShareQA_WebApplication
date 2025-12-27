@@ -46,7 +46,7 @@ public class CourseService {
                     .or().like(Course::getCode, keyword));
         }
         if (faculty != null && !faculty.trim().isEmpty()) {
-            wrapper.eq(Course::getFaculty, faculty);
+            wrapper.like(Course::getFaculty, faculty);
         }
         
         wrapper.orderByDesc(Course::getCreatedAt);

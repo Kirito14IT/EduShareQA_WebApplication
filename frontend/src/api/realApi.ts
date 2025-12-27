@@ -232,6 +232,15 @@ const realApi: RealApi = {
     await httpClient.delete(`/admin/teachers/${id}`)
   },
 
+  async getStudents(params: StudentQueryParams) {
+    const { data } = await httpClient.get<PagedStudentList>('/admin/students', { params })
+    return data
+  },
+
+  async setStudentCourses(studentId: number, courseIds: number[]) {
+    await httpClient.post(`/admin/students/${studentId}/courses`, { courseIds })
+  },
+
   async getAllResources(params: ResourceQueryParams) {
     const { data } = await httpClient.get<PagedResourceList>('/admin/resources', { params })
     return data

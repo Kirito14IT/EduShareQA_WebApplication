@@ -193,6 +193,33 @@ export interface TeacherQueryParams {
   department?: string
 }
 
+export interface Student {
+  id: number
+  username: string
+  email: string
+  fullName: string
+  department?: string
+  schoolId?: string
+  status: 'ACTIVE' | 'DISABLED'
+  courseIds?: number[]
+  courseNames?: string[]
+  createdAt: string
+}
+
+export interface PagedStudentList {
+  items: Student[]
+  page: number
+  pageSize: number
+  total: number
+}
+
+export interface StudentQueryParams {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  department?: string
+}
+
 // 教师模块类型
 export interface TeacherDashboardStats {
   pendingQuestions: number

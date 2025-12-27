@@ -37,7 +37,7 @@ public class StudentResourceController {
             @RequestParam(defaultValue = "10") Integer pageSize,
             HttpServletRequest request) {
         PagedResponse<ResourceDetail> result = resourceService.getResources(
-                courseId, keyword, page, pageSize);
+                courseId, keyword, page, pageSize, request);
         return ApiResponse.success(result);
     }
     

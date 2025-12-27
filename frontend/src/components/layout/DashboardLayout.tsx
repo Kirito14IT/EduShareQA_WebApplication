@@ -102,6 +102,9 @@ const DashboardLayout = () => {
                 <NavLink to="/admin/teachers">教师管理</NavLink>
               </motion.div>
               <motion.div whileHover={{ x: 4 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}>
+                <NavLink to="/admin/students">学生管理</NavLink>
+              </motion.div>
+              <motion.div whileHover={{ x: 4 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}>
                 <NavLink to="/admin/resources">资源管理</NavLink>
               </motion.div>
               <motion.div whileHover={{ x: 4 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}>

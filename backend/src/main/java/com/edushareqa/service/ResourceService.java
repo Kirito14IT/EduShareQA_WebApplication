@@ -35,6 +35,9 @@ public class ResourceService {
     private FileService fileService;
     
     @Autowired
+    private com.edushareqa.mapper.CourseStudentMapper courseStudentMapper;
+
+    @Autowired
     private JwtUtil jwtUtil;
     
     @Transactional
@@ -47,6 +50,14 @@ public class ResourceService {
         // 检查课程是否存在
         if (courseMapper.selectById(courseId) == null) {
             throw new RuntimeException("课程不存在: " + courseId);
+        }
+
+        // 检查权限：学生只能上传到自己选修的课程
+        if (!roles.contains("ADMIN") && !roles.contains("TEACHER")) {
+            List<Long> enrolledCourseIds = courseStudentMapper.selectCourseIdsByStudentId(userId);
+            if (!enrolledCourseIds.contains(courseId)) {
+                throw new RuntimeException("无权上传到此课程（未选修）");
+            }
         }
 
         String roleOfUploader = roles.contains("TEACHER") ? "TEACHER" : "STUDENT";
@@ -108,10 +119,28 @@ public class ResourceService {
     }
     
     public PagedResponse<ResourceDetail> getResources(Long courseId, String keyword,
-                                                      Integer page, Integer pageSize) {
+                                                      Integer page, Integer pageSize, HttpServletRequest request) {
         Page<Resource> pageObj = new Page<>(page, pageSize);
         LambdaQueryWrapper<Resource> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Resource::getStatus, "ACTIVE");
+        
+        // 权限控制：如果用户是学生，且资源是 COURSE_ONLY，则只能看已选修课程的资源
+        String token = getTokenFromRequest(request);
+        if (token != null) {
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            List<String> roles = jwtUtil.getRolesFromToken(token);
+            
+            if (!roles.contains("ADMIN") && !roles.contains("TEACHER")) {
+                List<Long> enrolledCourseIds = courseStudentMapper.selectCourseIdsByStudentId(userId);
+                
+                if (enrolledCourseIds.isEmpty()) {
+                    wrapper.eq(Resource::getVisibility, "PUBLIC");
+                } else {
+                    wrapper.and(w -> w.eq(Resource::getVisibility, "PUBLIC")
+                            .or(orWrapper -> orWrapper.in(Resource::getCourseId, enrolledCourseIds)));
+                }
+            }
+        }
         
         if (courseId != null) {
             wrapper.eq(Resource::getCourseId, courseId);

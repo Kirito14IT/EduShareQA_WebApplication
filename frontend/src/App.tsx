@@ -19,6 +19,7 @@ import ProfilePage from './pages/ProfilePage'
 // 管理员模块
 import CourseManagementPage from './pages/admin/CourseManagementPage'
 import TeacherManagementPage from './pages/admin/TeacherManagementPage'
+import StudentManagementPage from './pages/admin/StudentManagementPage'
 import ResourceManagementPage from './pages/admin/ResourceManagementPage'
 import QuestionManagementPage from './pages/admin/QuestionManagementPage'
 // 教师模块

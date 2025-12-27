@@ -73,7 +73,7 @@ const QuestionSearchPage = () => {
             <option value="">全部</option>
             {teachers.map((teacher) => (
               <option key={teacher.id} value={teacher.id}>
-                {teacher.name}
+                {teacher.fullName}
               </option>
             ))}
           </select>

@@ -10,7 +10,7 @@ const LoginPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const setAuth = useAuthStore((state) => state.setAuth)
-  const [form, setForm] = useState({ username: 'student01', password: 'password123' })
+  const [form, setForm] = useState({ username: '', password: '' })
 
   const { mutateAsync, isPending, error } = useMutation({
     mutationFn: api.login,
@@ -40,6 +40,7 @@ const LoginPage = () => {
               value={form.username}
               onChange={(e) => setForm((prev) => ({ ...prev, username: e.target.value }))}
               required
+              autoComplete="off"
             />
           </label>
           <label>
@@ -49,6 +50,7 @@ const LoginPage = () => {
               value={form.password}
               onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
               required
+              autoComplete="new-password"
             />
           </label>
           {error && (

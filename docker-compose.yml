@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: edushareqa-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: edushareqa
+    ports:
+      - "3309:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./backend/src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./backend/src/main/resources/db/init-data.sql:/docker-entrypoint-initdb.d/02_data.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: edushareqa-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/edushareqa?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: rootpassword
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/uploads
+
+  frontend:
+    build: ./frontend
+    container_name: edushareqa-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

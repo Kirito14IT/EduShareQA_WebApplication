@@ -3,9 +3,59 @@ spring:
     url: jdbc:mysql://118.89.81.131:3306/edushareqa?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: clouduser
     password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+      
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    
+server:
+  port: 8080
+  servlet:
+    context-path: /api
 
+app:
+  base-url: http://localhost:8080/api
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.edushareqa.entity
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# JWT配置
+jwt:
+  secret: ${JWT_SECRET:CHANGE_ME_TO_A_VERY_LONG_SECRET_KEY_AT_LEAST_32_BYTES}
+  access-token-expiration: 900000  # 15分钟（毫秒）
+  refresh-token-expiration: 604800000  # 7天（毫秒）
+
+# 文件上传配置
+file:
+  upload-dir: ./uploads
+  resources-dir: ./uploads/resources
+  question-attachments-dir: ./uploads/question-attachments
+  answer-attachments-dir: ./uploads/answer-attachments
+
+# 日志配置
 logging:
   level:
-    root: INFO
+    org.springframework.beans.factory.support: TRACE
+    org.springframework.context.support.PostProcessorRegistrationDelegate: DEBUG
     com.edushareqa: DEBUG
-
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

@@ -16,5 +16,6 @@ public class ResourceDetail {
     private String visibility;
     private String createdAt;
     private String fileUrl;
+    private String fileName;
 }
 

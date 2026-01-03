@@ -116,6 +116,7 @@ export interface QuestionDetail extends Question {
 export interface ResourceDetail extends Resource {
   uploaderName?: string
   fileUrl?: string
+  fileName?: string
 }
 
 // 管理员模块类型

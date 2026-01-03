@@ -95,6 +95,59 @@ public class ResourceService {
         return resource;
     }
 
+    @Transactional
+    public Resource updateResource(HttpServletRequest request, Long id, String title, String summary,
+                                   Long courseId, String visibility, MultipartFile file) {
+        String token = getTokenFromRequest(request);
+        Long userId = jwtUtil.getUserIdFromToken(token);
+        
+        Resource resource = resourceMapper.selectById(id);
+        if (resource == null || "DELETED".equals(resource.getStatus())) {
+            throw new RuntimeException("资源不存在");
+        }
+        
+        // Check permission: only uploader can edit
+        if (!resource.getUploaderId().equals(userId)) {
+            throw new RuntimeException("无权修改此资源");
+        }
+        
+        // Handle course change
+        if (courseId != null && !courseId.equals(resource.getCourseId())) {
+             if (courseMapper.selectById(courseId) == null) {
+                throw new RuntimeException("课程不存在: " + courseId);
+            }
+             
+             List<String> roles = jwtUtil.getRolesFromToken(token);
+             if (!roles.contains("ADMIN") && !roles.contains("TEACHER")) {
+                List<Long> enrolledCourseIds = courseStudentMapper.selectCourseIdsByStudentId(userId);
+                if (!enrolledCourseIds.contains(courseId)) {
+                    throw new RuntimeException("无权移动到此课程（未选修）");
+                }
+            }
+            resource.setCourseId(courseId);
+        }
+        
+        if (title != null) resource.setTitle(title);
+        if (summary != null) resource.setSummary(summary);
+        if (visibility != null) resource.setVisibility(visibility);
+        
+        // Handle file replacement
+        if (file != null && !file.isEmpty()) {
+            try {
+                String filePath = fileService.saveResourceFile(file);
+                resource.setFilePath(filePath);
+                resource.setFileType(file.getContentType());
+                resource.setFileSize(file.getSize());
+            } catch (Exception e) {
+                throw new RuntimeException("文件上传失败: " + e.getMessage());
+            }
+        }
+        
+        resource.setUpdatedAt(LocalDateTime.now());
+        resourceMapper.updateById(resource);
+        return resource;
+    }
+
     public PagedResponse<ResourceDetail> getAllResources(String keyword, Integer page, Integer pageSize) {
         Page<Resource> pageObj = new Page<>(page, pageSize);
         LambdaQueryWrapper<Resource> wrapper = new LambdaQueryWrapper<>();
@@ -265,6 +318,16 @@ public class ResourceService {
         if (uploader != null) {
             detail.setUploaderName(uploader.getFullName());
         }
+        
+        // Calculate fileName
+        String fileName = resource.getTitle();
+        if (resource.getFilePath() != null && resource.getFilePath().contains(".")) {
+            String extension = resource.getFilePath().substring(resource.getFilePath().lastIndexOf("."));
+            if (!fileName.toLowerCase().endsWith(extension.toLowerCase())) {
+                fileName += extension;
+            }
+        }
+        detail.setFileName(fileName);
         
         return detail;
     }

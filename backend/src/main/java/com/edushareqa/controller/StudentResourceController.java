@@ -107,6 +107,25 @@ public class StudentResourceController {
         }
     }
     
+    @PostMapping("/{id}")
+    public ApiResponse<Resource> updateResource(
+            @PathVariable Long id,
+            @RequestParam("metadata") String metadata,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            HttpServletRequest request) {
+        // 解析metadata JSON
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        try {
+            com.edushareqa.dto.ResourceMetadata meta = mapper.readValue(metadata, com.edushareqa.dto.ResourceMetadata.class);
+            Resource resource = resourceService.updateResource(
+                    request, id, meta.getTitle(), meta.getSummary(),
+                    meta.getCourseId(), meta.getVisibility(), file);
+            return ApiResponse.success(resource);
+        } catch (Exception e) {
+            throw new RuntimeException("更新失败: " + e.getMessage());
+        }
+    }
+    
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteResource(@PathVariable Long id, HttpServletRequest request) {
         resourceService.deleteResource(request, id);

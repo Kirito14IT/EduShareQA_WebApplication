@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -10,6 +10,9 @@ const ResourceEditPage = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { id } = useParams<{ id: string }>()
+  
+  const [file, setFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Fetch courses
   const { data: coursesData } = useQuery<PagedCourseList>({
@@ -50,7 +53,8 @@ const ResourceEditPage = () => {
   }, [resource])
 
   const { mutateAsync, isPending, error, isSuccess } = useMutation({
-    mutationFn: (metadata: ResourceMetadata) => api.updateResource(Number(id!), metadata),
+    mutationFn: (data: { metadata: ResourceMetadata; file: File | null }) => 
+      api.updateResource(Number(id!), data.metadata, data.file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['resource', id] })
       queryClient.invalidateQueries({ queryKey: ['resources'] })
@@ -61,7 +65,7 @@ const ResourceEditPage = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    await mutateAsync(form)
+    await mutateAsync({ metadata: form, file })
   }
 
   if (isLoading) {
@@ -141,6 +145,16 @@ const ResourceEditPage = () => {
             <option value="PUBLIC">全校可见</option>
           </select>
         </label>
+        <label>
+          更新附件 (可选)
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            accept=".pdf,.doc,.docx,.ppt,.pptx,.zip"
+          />
+          {resource?.fileName && <span className="muted text-sm">当前文件: {resource.fileName}</span>}
+        </label>
 
         {error && (
           <motion.div
@@ -176,4 +190,3 @@ const ResourceEditPage = () => {
 }
 
 export default ResourceEditPage
-

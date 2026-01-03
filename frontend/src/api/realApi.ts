@@ -54,7 +54,7 @@ export interface RealApi {
   getResources(params: ResourceQueryParams): Promise<PagedResourceList>
   getResourceById(id: number): Promise<ResourceDetail>
   uploadResource(payload: ResourceUploadPayload): Promise<Resource>
-  updateResource(id: number, metadata: ResourceMetadata): Promise<Resource>
+  updateResource(id: number, metadata: ResourceMetadata, file?: File | null): Promise<Resource>
   deleteResource(id: number): Promise<void>
   getMyResources(params: ResourceQueryParams): Promise<PagedResourceList>
   // 学生问答
@@ -161,8 +161,15 @@ const realApi: RealApi = {
     return data
   },
 
-  async updateResource(id: number, metadata: ResourceMetadata) {
-    const { data } = await httpClient.put<Resource>(`/student/resources/${id}`, metadata)
+  async updateResource(id: number, metadata: ResourceMetadata, file?: File | null) {
+    const formData = new FormData()
+    formData.append('metadata', JSON.stringify(metadata))
+    if (file) {
+      formData.append('file', file)
+    }
+    const { data } = await httpClient.post<Resource>(`/student/resources/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
     return data
   },
 

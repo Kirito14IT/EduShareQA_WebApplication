@@ -91,6 +91,16 @@ export interface NotificationCounts {
   pendingQuestions: number
 }
 
+export interface NotificationDetail {
+  id: number
+  type: string
+  message: string
+  questionId?: number
+  answerId?: number
+  isRead: boolean
+  createdAt: string
+}
+
 export interface ApiLoginResponse {
   tokens: AuthTokens
   user: UserProfile

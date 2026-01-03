@@ -1,9 +1,12 @@
 import httpClient from './httpClient'
+import axios from 'axios'
+import env from '../config/env'
 import type {
   ApiLoginResponse,
   AuthTokens,
   LoginRequest,
   NotificationCounts,
+  NotificationDetail,
   PagedQuestionList,
   PagedResourceList,
   Question,
@@ -15,6 +18,36 @@ import type {
   ResourceQueryParams,
   UserProfile,
 } from '../types/api'
+
+// 创建一个不带认证拦截器的HTTP客户端用于登录
+const httpClientWithoutAuth = axios.create({
+  baseURL: env.apiBaseUrl,
+})
+
+// 响应拦截器：解包ApiResponse格式
+httpClientWithoutAuth.interceptors.response.use(
+  (response) => {
+    // 如果响应数据是ApiResponse格式 {code, message, data}，则提取data
+    if (response.data && typeof response.data === 'object' && 'code' in response.data && 'data' in response.data) {
+      if (response.data.code === 0) {
+        return { ...response, data: response.data.data }
+      } else {
+        return Promise.reject(new Error(response.data.message || '请求失败'))
+      }
+    }
+    return response
+  },
+  (error) => {
+    // 处理错误响应
+    if (error.response?.data) {
+      const errorData = error.response.data
+      if (errorData.code !== undefined && errorData.message) {
+        return Promise.reject(new Error(errorData.message))
+      }
+    }
+    return Promise.reject(error)
+  }
+)
 
 export interface ResourceUploadPayload {
   metadata: ResourceMetadata
@@ -66,6 +99,8 @@ export interface RealApi {
   deleteQuestion(id: number): Promise<void>
   // 通知
   getNotificationCounts(): Promise<NotificationCounts>
+  markNotificationsAsRead(): Promise<void>
+  getNotifications(): Promise<NotificationDetail[]>
   // 管理员 - 课程
   getCourses(params: CourseQueryParams): Promise<PagedCourseList>
   createCourse(payload: CourseCreate): Promise<Course>
@@ -103,15 +138,15 @@ export interface RealApi {
 
 const realApi: RealApi = {
   async login(payload) {
-    const { data: tokens } = await httpClient.post<AuthTokens>('/auth/login', payload)
-    const { data: profile } = await httpClient.get<UserProfile>('/profile/me', {
+    const { data: tokens } = await httpClientWithoutAuth.post<AuthTokens>('/auth/login', payload)
+    const { data: profile } = await httpClientWithoutAuth.get<UserProfile>('/profile/me', {
       headers: { Authorization: `Bearer ${tokens.accessToken}` },
     })
     return { tokens, user: profile }
   },
 
   async register(payload) {
-    await httpClient.post('/auth/register', payload)
+    await httpClientWithoutAuth.post('/auth/register', payload)
     return realApi.login({ username: payload.username, password: payload.password })
   },
 
@@ -156,6 +191,15 @@ const realApi: RealApi = {
     return data
   },
 
+  async markNotificationsAsRead() {
+    await httpClient.post('/notifications/mark-read')
+  },
+
+  async getNotifications() {
+    const { data } = await httpClient.get<NotificationDetail[]>('/notifications/list')
+    return data
+  },
+
   async getResourceById(id: number) {
     const { data } = await httpClient.get<ResourceDetail>(`/student/resources/${id}`)
     return data
@@ -183,7 +227,7 @@ const realApi: RealApi = {
   },
 
   async searchQuestions(params: QuestionQueryParams) {
-    const { data } = await httpClient.get<PagedQuestionList>('/student/questions/search', { params })
+    const { data } = await httpClient.get<PagedQuestionList>('/student/questions', { params })
     return data
   },
 

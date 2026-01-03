@@ -13,7 +13,7 @@ import QuestionDetailPage from './pages/QuestionDetailPage'
 import QuestionEditPage from './pages/QuestionEditPage'
 import QuestionSearchPage from './pages/QuestionSearchPage'
 import QuestionCreatePage from './pages/QuestionCreatePage'
-import NotificationsPage from './pages/NotificationsPage'
+import RoleBasedNotifications from './components/RoleBasedNotifications'
 import StudentProfilePage from './pages/StudentProfilePage'
 import ProfilePage from './pages/ProfilePage'
 // 管理员模块
@@ -26,6 +26,7 @@ import QuestionManagementPage from './pages/admin/QuestionManagementPage'
 import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage'
 import TeacherQuestionsPage from './pages/teacher/TeacherQuestionsPage'
 import TeacherAnswerPage from './pages/teacher/TeacherAnswerPage'
+import TeacherResourcesPage from './pages/teacher/TeacherResourcesPage'
 
 function App() {
   return (
@@ -48,7 +49,7 @@ function App() {
           <Route path="/questions/:id" element={<QuestionDetailPage />} />
           <Route path="/questions/:id/edit" element={<QuestionEditPage />} />
           <Route path="/questions/new" element={<QuestionCreatePage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/notifications" element={<RoleBasedNotifications />} />
           <Route path="/profile" element={<StudentProfilePage />} />
           {/* 管理员模块 */}
           <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
@@ -63,6 +64,7 @@ function App() {
             <Route path="/teacher/dashboard" element={<TeacherDashboardPage />} />
             <Route path="/teacher/questions" element={<TeacherQuestionsPage />} />
             <Route path="/teacher/questions/:id" element={<TeacherAnswerPage />} />
+            <Route path="/teacher/resources" element={<TeacherResourcesPage />} />
           </Route>
           {/* 通用模块 */}
           <Route path="/settings" element={<ProfilePage />} />

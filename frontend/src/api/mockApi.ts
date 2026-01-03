@@ -8,6 +8,7 @@ import type {
   CourseQueryParams,
   LoginRequest,
   NotificationCounts,
+  NotificationDetail,
   PagedCourseList,
   PagedQuestionList,
   PagedResourceList,
@@ -312,6 +313,28 @@ const mockApi: RealApi = {
     }
   },
 
+  async searchQuestions(params: QuestionQueryParams = {}): Promise<PagedQuestionList> {
+    await delay()
+    const filtered = questions.filter(
+      (question) =>
+        (params.courseId ? question.courseId === params.courseId : true) &&
+        (params.status ? question.status === params.status : true) &&
+        (params.keyword
+          ? matchesKeyword(question.title, params.keyword) || matchesKeyword(question.content, params.keyword)
+          : true) &&
+        (params.teacherId
+          ? teachers.some((t) => t.id === params.teacherId && (t.courseIds || []).includes(question.courseId))
+          : true),
+    )
+    const { slice, total } = paginate(filtered, params.page, params.pageSize)
+    return {
+      items: slice,
+      page: params.page ?? 1,
+      pageSize: params.pageSize ?? 10,
+      total,
+    }
+  },
+
   async createQuestion(payload: QuestionCreatePayload): Promise<Question> {
     await delay()
     const question: Question = {
@@ -331,6 +354,35 @@ const mockApi: RealApi = {
       newAnswers: questions.filter((q) => q.status === 'ANSWERED').length,
       pendingQuestions: questions.filter((q) => q.status === 'OPEN').length,
     }
+  },
+
+  async markNotificationsAsRead(): Promise<void> {
+    await delay()
+    // Mock implementation - do nothing
+  },
+
+  async getNotifications(): Promise<NotificationDetail[]> {
+    await delay()
+    const mockNotifications: NotificationDetail[] = [
+      {
+        id: 1,
+        type: 'QUESTION_REPLIED',
+        message: '您的提问收到了新的回答',
+        questionId: 1,
+        answerId: 1,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: 2,
+        type: 'NEW_QUESTION',
+        message: '您有一个新的提问待处理',
+        questionId: 2,
+        isRead: true,
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
+      },
+    ]
+    return mockNotifications
   },
 
   async getResourceById(id: number): Promise<ResourceDetail> {
@@ -367,28 +419,6 @@ const mockApi: RealApi = {
         (params.courseId ? resource.courseId === params.courseId : true) &&
         (params.keyword
           ? matchesKeyword(resource.title, params.keyword) || matchesKeyword(resource.summary, params.keyword)
-          : true),
-    )
-    const { slice, total } = paginate(filtered, params.page, params.pageSize)
-    return {
-      items: slice,
-      page: params.page ?? 1,
-      pageSize: params.pageSize ?? 10,
-      total,
-    }
-  },
-
-  async searchQuestions(params: QuestionQueryParams = {}): Promise<PagedQuestionList> {
-    await delay()
-    const filtered = questions.filter(
-      (question) =>
-        (params.courseId ? question.courseId === params.courseId : true) &&
-        (params.status ? question.status === params.status : true) &&
-        (params.keyword
-          ? matchesKeyword(question.title, params.keyword) || matchesKeyword(question.content, params.keyword)
-          : true) &&
-        (params.teacherId
-          ? teachers.some((t) => t.id === params.teacherId && (t.courseIds || []).includes(question.courseId))
           : true),
     )
     const { slice, total } = paginate(filtered, params.page, params.pageSize)

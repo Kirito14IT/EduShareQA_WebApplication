@@ -232,6 +232,17 @@ public class FileService {
     
     public File getResourceFile(String filePath) {
         if (filePath == null) return null;
+        
+        // 兼容处理：如果数据库存的是完整URL，去掉域名部分
+        if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
+             // 查找 /uploads/resources/ 的位置
+             String keyword = "/uploads/resources/";
+             int index = filePath.indexOf(keyword);
+             if (index != -1) {
+                 filePath = filePath.substring(index + keyword.length());
+             }
+        }
+        
         File file = new File(resourcesDir, filePath);
         if (file.exists() && file.isFile()) {
             return file;

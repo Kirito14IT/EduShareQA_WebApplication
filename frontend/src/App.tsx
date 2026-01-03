@@ -54,6 +54,7 @@ function App() {
           <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
             <Route path="/admin/courses" element={<CourseManagementPage />} />
             <Route path="/admin/teachers" element={<TeacherManagementPage />} />
+            <Route path="/admin/students" element={<StudentManagementPage />} />
             <Route path="/admin/resources" element={<ResourceManagementPage />} />
             <Route path="/admin/questions" element={<QuestionManagementPage />} />
           </Route>

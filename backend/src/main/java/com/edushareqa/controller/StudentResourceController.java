@@ -40,6 +40,15 @@ public class StudentResourceController {
                 courseId, keyword, page, pageSize, request);
         return ApiResponse.success(result);
     }
+
+    @GetMapping("/my")
+    public ApiResponse<PagedResponse<ResourceDetail>> getMyResources(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            HttpServletRequest request) {
+        PagedResponse<ResourceDetail> result = resourceService.getMyResources(page, pageSize, request);
+        return ApiResponse.success(result);
+    }
     
     @GetMapping("/{id}")
     public ApiResponse<ResourceDetail> getResourceById(@PathVariable Long id) {

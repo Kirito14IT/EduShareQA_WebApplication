@@ -35,6 +35,7 @@ import type {
   PasswordChange,
   PagedTeacherList,
   PagedTeacherQuestionList,
+  PagedStudentList,
   ProfileUpdate,
   QuestionDetail,
   ResourceDetail,
@@ -42,6 +43,7 @@ import type {
   TeacherCreate,
   TeacherDashboardStats,
   TeacherQueryParams,
+  StudentQueryParams,
 } from '../types/api'
 
 export interface RealApi {
@@ -75,6 +77,9 @@ export interface RealApi {
   updateTeacher(id: number, payload: Partial<TeacherCreate>): Promise<Teacher>
   setTeacherCourses(teacherId: number, courseIds: number[]): Promise<void>
   deleteTeacher(id: number): Promise<void>
+  // 管理员 - 学生
+  getStudents(params: StudentQueryParams): Promise<PagedStudentList>
+  setStudentCourses(studentId: number, courseIds: number[]): Promise<void>
   // 管理员 - 内容管理
   getAllResources(params: ResourceQueryParams): Promise<PagedResourceList>
   adminDeleteResource(id: number): Promise<void>

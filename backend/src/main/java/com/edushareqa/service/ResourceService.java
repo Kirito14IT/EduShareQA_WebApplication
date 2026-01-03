@@ -161,6 +161,25 @@ public class ResourceService {
         return PagedResponse.of(items, page, pageSize, result.getTotal());
     }
     
+    public PagedResponse<ResourceDetail> getMyResources(Integer page, Integer pageSize, HttpServletRequest request) {
+        String token = getTokenFromRequest(request);
+        Long userId = jwtUtil.getUserIdFromToken(token);
+
+        Page<Resource> pageObj = new Page<>(page, pageSize);
+        LambdaQueryWrapper<Resource> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Resource::getUploaderId, userId);
+        wrapper.ne(Resource::getStatus, "DELETED");
+        wrapper.orderByDesc(Resource::getCreatedAt);
+
+        Page<Resource> result = resourceMapper.selectPage(pageObj, wrapper);
+
+        List<ResourceDetail> items = result.getRecords().stream()
+                .map(this::toResourceDetail)
+                .collect(Collectors.toList());
+
+        return PagedResponse.of(items, page, pageSize, result.getTotal());
+    }
+
     public ResourceDetail getResourceById(Long id) {
         Resource resource = resourceMapper.selectById(id);
         if (resource == null || !"ACTIVE".equals(resource.getStatus())) {

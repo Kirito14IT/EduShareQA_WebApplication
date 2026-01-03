@@ -13,6 +13,7 @@ import type {
   PagedResourceList,
   PagedTeacherList,
   PagedTeacherQuestionList,
+  PagedStudentList,
   PasswordChange,
   ProfileUpdate,
   Question,
@@ -24,6 +25,8 @@ import type {
   ResourceDetail,
   ResourceMetadata,
   ResourceQueryParams,
+  Student,
+  StudentQueryParams,
   Teacher,
   TeacherCreate,
   TeacherDashboardStats,
@@ -46,7 +49,7 @@ const getUploaderName = (uploaderId: number): string => {
   return names[uploaderId] ?? `用户${uploaderId}`
 }
 
-const users: Array<UserProfile & { password: string }> = [
+const users: Array<UserProfile & { password: string; courseIds?: number[]; courseNames?: string[]; status?: 'ACTIVE' | 'DISABLED'; createdAt?: string }> = [
   {
     id: 1,
     username: 'student01',
@@ -55,6 +58,10 @@ const users: Array<UserProfile & { password: string }> = [
     fullName: 'Alice Student',
     department: 'Computer Science',
     roles: ['STUDENT'],
+    status: 'ACTIVE',
+    createdAt: new Date().toISOString(),
+    courseIds: [101],
+    courseNames: ['线性代数'],
   },
   {
     id: 2,
@@ -64,6 +71,8 @@ const users: Array<UserProfile & { password: string }> = [
     fullName: 'Bob Teacher',
     department: 'Mathematics',
     roles: ['TEACHER'],
+    status: 'ACTIVE',
+    createdAt: new Date().toISOString(),
   },
   {
     id: 3,
@@ -73,6 +82,8 @@ const users: Array<UserProfile & { password: string }> = [
     fullName: 'Admin User',
     department: 'Administration',
     roles: ['ADMIN'],
+    status: 'ACTIVE',
+    createdAt: new Date().toISOString(),
   },
 ]
 
@@ -523,6 +534,43 @@ const mockApi: RealApi = {
     const index = teachers.findIndex((t) => t.id === id)
     if (index === -1) throw new Error('教师不存在')
     teachers.splice(index, 1)
+  },
+
+  // 管理员模块 - 学生
+  async getStudents(params: StudentQueryParams = {}): Promise<PagedStudentList> {
+    await delay()
+    const studentUsers = users.filter((u) => u.roles.includes('STUDENT'))
+    const filtered = studentUsers.filter(
+      (student) =>
+        (!params.keyword ||
+          student.fullName.toLowerCase().includes(params.keyword.toLowerCase()) ||
+          student.username.toLowerCase().includes(params.keyword.toLowerCase()) ||
+          student.email.toLowerCase().includes(params.keyword.toLowerCase())) &&
+        (!params.department || student.department === params.department),
+    )
+    const { slice, total } = paginate(filtered, params.page, params.pageSize)
+    
+    const items: Student[] = slice.map(u => ({
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      fullName: u.fullName,
+      department: u.department,
+      status: u.status || 'ACTIVE',
+      courseIds: u.courseIds || [],
+      courseNames: u.courseNames || [],
+      createdAt: u.createdAt || new Date().toISOString(),
+    }))
+
+    return { items, page: params.page ?? 1, pageSize: params.pageSize ?? 10, total }
+  },
+
+  async setStudentCourses(studentId: number, courseIds: number[]): Promise<void> {
+    await delay()
+    const student = users.find((u) => u.id === studentId)
+    if (!student) throw new Error('学生不存在')
+    student.courseIds = courseIds
+    student.courseNames = courseIds.map((cid) => courses.find((c) => c.id === cid)?.name || '')
   },
 
   // 管理员模块 - 内容管理

@@ -233,6 +233,13 @@ public class ResourceService {
         return PagedResponse.of(items, page, pageSize, result.getTotal());
     }
 
+    public Long countMyResources(Long userId) {
+        LambdaQueryWrapper<Resource> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Resource::getUploaderId, userId);
+        wrapper.ne(Resource::getStatus, "DELETED");
+        return resourceMapper.selectCount(wrapper);
+    }
+
     public ResourceDetail getResourceById(Long id) {
         Resource resource = resourceMapper.selectById(id);
         if (resource == null || !"ACTIVE".equals(resource.getStatus())) {

@@ -129,6 +129,12 @@ public class AnswerService {
         answerMapper.deleteById(id);
     }
     
+    public Long countMyAnswers(Long teacherId) {
+        LambdaQueryWrapper<Answer> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Answer::getTeacherId, teacherId);
+        return answerMapper.selectCount(wrapper);
+    }
+
     private AnswerDetail toAnswerDetail(Answer answer) {
         AnswerDetail detail = new AnswerDetail();
         detail.setId(answer.getId());

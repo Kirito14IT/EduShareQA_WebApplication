@@ -183,6 +183,17 @@ public class QuestionService {
         return PagedResponse.of(result.getRecords(), page, pageSize, result.getTotal());
     }
 
+    public Long countPendingQuestions(Long teacherId) {
+        List<Long> courseIds = courseTeacherMapper.selectCourseIdsByTeacherId(teacherId);
+        if (courseIds.isEmpty()) {
+            return 0L;
+        }
+        LambdaQueryWrapper<Question> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(Question::getCourseId, courseIds);
+        wrapper.eq(Question::getStatus, "OPEN");
+        return questionMapper.selectCount(wrapper);
+    }
+
     public PagedResponse<TeacherQuestion> getTeacherQuestions(String status, Integer page, Integer pageSize, HttpServletRequest request) {
         String token = getTokenFromRequest(request);
         Long teacherId = jwtUtil.getUserIdFromToken(token);

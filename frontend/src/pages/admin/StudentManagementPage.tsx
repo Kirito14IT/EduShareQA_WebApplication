@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-hot-toast'
-import { FiBook, FiSearch, FiX } from 'react-icons/fi'
+import { FiBook, FiX } from 'react-icons/fi'
 import api from '../../api'
 import type { Student, StudentQueryParams } from '../../types/api'
 

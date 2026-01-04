@@ -115,11 +115,11 @@ export interface RealApi {
   // 管理员 - 内容管理
   getAllResources(params: ResourceQueryParams): Promise<PagedResourceList>
   adminDeleteResource(id: number): Promise<void>
-  adminUpdateResource(id: number, metadata: Partial<ResourceMetadata>): Promise<Resource>
+  adminUpdateResource(id: number, metadata: Partial<ResourceMetadata>, file?: File | null): Promise<Resource>
   getAllQuestions(params: QuestionQueryParams): Promise<PagedQuestionList>
   adminDeleteQuestion(id: number): Promise<void>
   adminDeleteAnswer(id: number): Promise<void>
-  adminUpdateQuestion(id: number, question: Partial<QuestionCreate>): Promise<Question>
+  adminUpdateQuestion(id: number, question: Partial<QuestionCreate>, attachments?: File[]): Promise<Question>
   adminUpdateAnswer(id: number, content: string): Promise<AnswerDetail>
   // 教师模块
   getTeacherDashboardStats(): Promise<TeacherDashboardStats>
@@ -305,8 +305,15 @@ const realApi: RealApi = {
     await httpClient.delete(`/admin/resources/${id}`)
   },
 
-  async adminUpdateResource(id: number, metadata: Partial<ResourceMetadata>) {
-    const { data } = await httpClient.put<Resource>(`/admin/resources/${id}`, metadata)
+  async adminUpdateResource(id: number, metadata: Partial<ResourceMetadata>, file?: File | null) {
+    const formData = new FormData()
+    formData.append('metadata', JSON.stringify(metadata))
+    if (file) {
+      formData.append('file', file)
+    }
+    const { data } = await httpClient.put<Resource>(`/admin/resources/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
     return data
   },
 
@@ -323,8 +330,17 @@ const realApi: RealApi = {
     await httpClient.delete(`/admin/answers/${id}`)
   },
 
-  async adminUpdateQuestion(id: number, question: Partial<QuestionCreate>) {
-    const { data } = await httpClient.put<Question>(`/admin/questions/${id}`, question)
+  async adminUpdateQuestion(id: number, question: Partial<QuestionCreate>, attachments?: File[]) {
+    const formData = new FormData()
+    formData.append('metadata', JSON.stringify(question))
+    if (attachments && attachments.length > 0) {
+      attachments.forEach((file) => {
+        formData.append('attachments', file)
+      })
+    }
+    const { data } = await httpClient.put<Question>(`/admin/questions/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
     return data
   },
 

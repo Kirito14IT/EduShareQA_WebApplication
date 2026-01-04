@@ -388,7 +388,7 @@ public class QuestionService {
     }
 
     @Transactional
-    public Question adminUpdateQuestion(Long id, Long courseId, String title, String content) {
+    public Question adminUpdateQuestion(Long id, Long courseId, String title, String content, List<MultipartFile> attachments) {
         Question question = questionMapper.selectById(id);
         if (question == null) {
             throw new RuntimeException("问题不存在");
@@ -403,6 +403,33 @@ public class QuestionService {
         if (content != null && !content.trim().isEmpty()) {
             question.setContent(content);
         }
+        
+        // Handle attachments update: if new attachments provided, delete old ones and add new ones
+        if (attachments != null && !attachments.isEmpty()) {
+            // Delete old attachments
+            LambdaQueryWrapper<QuestionAttachment> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(QuestionAttachment::getQuestionId, id);
+            attachmentMapper.delete(wrapper);
+            
+            // Add new attachments
+            for (MultipartFile file : attachments) {
+                if (!file.isEmpty()) {
+                    try {
+                        String filePath = fileService.saveQuestionAttachment(file);
+                        QuestionAttachment attachment = new QuestionAttachment();
+                        attachment.setQuestionId(question.getId());
+                        attachment.setFilePath(filePath);
+                        attachment.setFileType(file.getContentType());
+                        attachment.setFileSize(file.getSize());
+                        attachment.setCreatedAt(LocalDateTime.now());
+                        attachmentMapper.insert(attachment);
+                    } catch (Exception e) {
+                        throw new RuntimeException("附件上传失败: " + e.getMessage());
+                    }
+                }
+            }
+        }
+        
         question.setUpdatedAt(LocalDateTime.now());
 
         questionMapper.updateById(question);

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
+import { FiEye, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import type { PagedQuestionList, QuestionQueryParams, PagedCourseList, PagedTeacherList } from '../types/api'
@@ -127,7 +128,7 @@ const QuestionSearchPage = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      查看详情
+                      <FiEye /> 查看详情
                     </motion.button>
                   </td>
                 </tr>
@@ -152,7 +153,7 @@ const QuestionSearchPage = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            上一页
+            <FiChevronLeft /> 上一页
           </motion.button>
           <span className="pagination-info">
             第 {data.page} 页，共 {Math.ceil(data.total / data.pageSize)} 页（共 {data.total} 条）
@@ -164,7 +165,7 @@ const QuestionSearchPage = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            下一页
+            下一页 <FiChevronRight />
           </motion.button>
         </motion.div>
       )}

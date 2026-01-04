@@ -249,27 +249,24 @@ const TeacherManagementPage = () => {
                           onClick={() => handleOpenEdit(teacher)}
                           whileHover={{ scale: 1.1, color: '#2563eb' }}
                           whileTap={{ scale: 0.9 }}
-                          title="编辑"
                         >
-                          <FiEdit2 />
+                          <FiEdit2 /> 编辑
                         </motion.button>
                         <motion.button
                           className="ghost-button small"
                           onClick={() => handleOpenCourseModal(teacher)}
                           whileHover={{ scale: 1.1, color: '#10b981' }}
                           whileTap={{ scale: 0.9 }}
-                          title="分配课程"
                         >
-                          <FiBook />
+                          <FiBook /> 分配课程
                         </motion.button>
                         <motion.button
                           className="ghost-button small danger"
                           onClick={() => handleDelete(teacher.id)}
                           whileHover={{ scale: 1.1, color: '#dc2626' }}
                           whileTap={{ scale: 0.9 }}
-                          title="删除"
                         >
-                          <FiTrash2 />
+                          <FiTrash2 /> 删除
                         </motion.button>
                       </div>
                     </td>

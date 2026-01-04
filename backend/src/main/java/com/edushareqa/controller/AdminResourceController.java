@@ -10,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.web.multipart.MultipartFile;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 @RestController
 @RequestMapping("/admin/resources")
 @PreAuthorize("hasRole('ADMIN')")
@@ -17,6 +21,9 @@ public class AdminResourceController {
 
     @Autowired
     private ResourceService resourceService;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @GetMapping
     public ApiResponse<PagedResponse<ResourceDetail>> getAllResources(
@@ -28,8 +35,12 @@ public class AdminResourceController {
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<Resource> updateResource(@PathVariable Long id, @RequestBody ResourceMetadata metadata) {
-        Resource resource = resourceService.adminUpdateResource(id, metadata);
+    public ApiResponse<Resource> updateResource(
+            @PathVariable Long id, 
+            @RequestParam("metadata") String metadataJson,
+            @RequestParam(value = "file", required = false) MultipartFile file) throws JsonProcessingException {
+        ResourceMetadata metadata = objectMapper.readValue(metadataJson, ResourceMetadata.class);
+        Resource resource = resourceService.adminUpdateResource(id, metadata, file);
         return ApiResponse.success(resource);
     }
 

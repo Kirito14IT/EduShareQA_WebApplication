@@ -198,7 +198,7 @@ const CourseManagementPage = () => {
                           whileHover={{ scale: 1.1, color: '#2563eb' }}
                           whileTap={{ scale: 0.9 }}
                         >
-                          <FiEdit2 />
+                          <FiEdit2 /> 编辑
                         </motion.button>
                         <motion.button
                           className="ghost-button small danger"
@@ -206,7 +206,7 @@ const CourseManagementPage = () => {
                           whileHover={{ scale: 1.1, color: '#dc2626' }}
                           whileTap={{ scale: 0.9 }}
                         >
-                          <FiTrash2 />
+                          <FiTrash2 /> 删除
                         </motion.button>
                       </div>
                     </td>

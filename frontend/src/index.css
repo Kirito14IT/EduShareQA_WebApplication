@@ -496,6 +496,17 @@ td {
   background: #e2e8f0;
 }
 
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #eff6ff;
+  color: #2563eb;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
 .answers-list {
   display: flex;
   flex-direction: column;

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
+import { FiEye, FiEdit2, FiTrash2, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import type { PagedResourceList, PagedQuestionList, ResourceQueryParams, QuestionQueryParams, PagedCourseList } from '../types/api'
@@ -131,7 +132,7 @@ const StudentProfilePage = () => {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
-                            查看
+                            <FiEye /> 查看
                           </motion.button>
                           <motion.button
                             className="ghost-button small"
@@ -139,7 +140,7 @@ const StudentProfilePage = () => {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
-                            编辑
+                            <FiEdit2 /> 编辑
                           </motion.button>
                           <motion.button
                             className="ghost-button small danger"
@@ -147,7 +148,7 @@ const StudentProfilePage = () => {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
-                            删除
+                            <FiTrash2 /> 删除
                           </motion.button>
                         </div>
                       </td>
@@ -168,7 +169,7 @@ const StudentProfilePage = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                上一页
+                <FiChevronLeft /> 上一页
               </motion.button>
               <span className="pagination-info">
                 第 {myResources.page} 页，共 {Math.ceil(myResources.total / myResources.pageSize)} 页
@@ -180,7 +181,7 @@ const StudentProfilePage = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                下一页
+                下一页 <FiChevronRight />
               </motion.button>
             </div>
           )}
@@ -232,7 +233,7 @@ const StudentProfilePage = () => {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
-                            查看
+                            <FiEye /> 查看
                           </motion.button>
                           {question.status === 'OPEN' && (
                             <motion.button
@@ -241,7 +242,7 @@ const StudentProfilePage = () => {
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                             >
-                              编辑
+                              <FiEdit2 /> 编辑
                             </motion.button>
                           )}
                           <motion.button
@@ -250,7 +251,7 @@ const StudentProfilePage = () => {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
-                            删除
+                            <FiTrash2 /> 删除
                           </motion.button>
                         </div>
                       </td>
@@ -271,7 +272,7 @@ const StudentProfilePage = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                上一页
+                <FiChevronLeft /> 上一页
               </motion.button>
               <span className="pagination-info">
                 第 {myQuestions.page} 页，共 {Math.ceil(myQuestions.total / myQuestions.pageSize)} 页
@@ -283,7 +284,7 @@ const StudentProfilePage = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                下一页
+                下一页 <FiChevronRight />
               </motion.button>
             </div>
           )}

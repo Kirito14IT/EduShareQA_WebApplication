@@ -21,7 +21,11 @@ import CourseManagementPage from './pages/admin/CourseManagementPage'
 import TeacherManagementPage from './pages/admin/TeacherManagementPage'
 import StudentManagementPage from './pages/admin/StudentManagementPage'
 import ResourceManagementPage from './pages/admin/ResourceManagementPage'
+import AdminResourceDetailPage from './pages/admin/AdminResourceDetailPage'
+import AdminResourceEditPage from './pages/admin/AdminResourceEditPage'
 import QuestionManagementPage from './pages/admin/QuestionManagementPage'
+import AdminQuestionDetailPage from './pages/admin/AdminQuestionDetailPage'
+import AdminQuestionEditPage from './pages/admin/AdminQuestionEditPage'
 // 教师模块
 import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage'
 import TeacherQuestionsPage from './pages/teacher/TeacherQuestionsPage'
@@ -57,7 +61,11 @@ function App() {
             <Route path="/admin/teachers" element={<TeacherManagementPage />} />
             <Route path="/admin/students" element={<StudentManagementPage />} />
             <Route path="/admin/resources" element={<ResourceManagementPage />} />
+            <Route path="/admin/resources/:id" element={<AdminResourceDetailPage />} />
+            <Route path="/admin/resources/:id/edit" element={<AdminResourceEditPage />} />
             <Route path="/admin/questions" element={<QuestionManagementPage />} />
+            <Route path="/admin/questions/:id" element={<AdminQuestionDetailPage />} />
+            <Route path="/admin/questions/:id/edit" element={<AdminQuestionEditPage />} />
           </Route>
           {/* 教师模块 */}
           <Route element={<ProtectedRoute requiredRole={['TEACHER', 'ADMIN']} />}>

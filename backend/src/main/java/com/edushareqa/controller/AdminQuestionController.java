@@ -12,6 +12,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 @RestController
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
@@ -22,6 +28,9 @@ public class AdminQuestionController {
     
     @Autowired
     private AnswerService answerService;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @GetMapping("/questions")
     public ApiResponse<PagedResponse<Question>> getAllQuestions(
@@ -49,11 +58,13 @@ public class AdminQuestionController {
 
     @PutMapping("/questions/{id}")
     public ApiResponse<Question> updateQuestion(@PathVariable Long id,
-                                               @RequestBody Map<String, Object> body) {
+                                               @RequestParam("metadata") String metadataJson,
+                                               @RequestParam(value = "attachments", required = false) List<MultipartFile> attachments) throws JsonProcessingException {
+        Map<String, Object> body = objectMapper.readValue(metadataJson, new TypeReference<Map<String, Object>>() {});
         Long courseId = body.get("courseId") != null ? Long.valueOf(body.get("courseId").toString()) : null;
         String title = (String) body.get("title");
         String content = (String) body.get("content");
-        Question updatedQuestion = questionService.adminUpdateQuestion(id, courseId, title, content);
+        Question updatedQuestion = questionService.adminUpdateQuestion(id, courseId, title, content, attachments);
         return ApiResponse.success(updatedQuestion);
     }
 

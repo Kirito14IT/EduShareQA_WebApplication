@@ -291,7 +291,7 @@ public class ResourceService {
     }
     
     @Transactional
-    public Resource adminUpdateResource(Long id, com.edushareqa.dto.ResourceMetadata metadata) {
+    public Resource adminUpdateResource(Long id, com.edushareqa.dto.ResourceMetadata metadata, MultipartFile file) {
         Resource resource = resourceMapper.selectById(id);
         if (resource == null) {
             throw new RuntimeException("资源不存在");
@@ -300,6 +300,18 @@ public class ResourceService {
         if (metadata.getTitle() != null) resource.setTitle(metadata.getTitle());
         if (metadata.getSummary() != null) resource.setSummary(metadata.getSummary());
         if (metadata.getVisibility() != null) resource.setVisibility(metadata.getVisibility());
+        if (metadata.getCourseId() != null) resource.setCourseId(metadata.getCourseId());
+        
+        if (file != null && !file.isEmpty()) {
+            try {
+                String filePath = fileService.saveResourceFile(file);
+                resource.setFilePath(filePath);
+                resource.setFileType(file.getContentType());
+                resource.setFileSize(file.getSize());
+            } catch (Exception e) {
+                throw new RuntimeException("文件上传失败: " + e.getMessage());
+            }
+        }
         
         resource.setUpdatedAt(LocalDateTime.now());
         resourceMapper.updateById(resource);

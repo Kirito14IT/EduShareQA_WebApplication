@@ -16,20 +16,21 @@ import java.util.List;
 @RestController
 @RequestMapping("/student/questions")
 public class StudentQuestionController {
-    
+
     @Autowired
     private QuestionService questionService;
-    
+
     @GetMapping
     public ApiResponse<PagedResponse<Question>> getQuestions(
             @RequestParam(required = false) Long courseId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long teacherId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize,
             HttpServletRequest request) {
         PagedResponse<Question> result = questionService.getQuestions(
-                courseId, status, keyword, page, pageSize, request);
+                courseId, status, keyword, teacherId, page, pageSize, request);
         return ApiResponse.success(result);
     }
     

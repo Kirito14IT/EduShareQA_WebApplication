@@ -128,6 +128,22 @@ public class AnswerService {
     public void adminDeleteAnswer(Long id) {
         answerMapper.deleteById(id);
     }
+
+    @Transactional
+    public Answer adminUpdateAnswer(Long id, String content) {
+        Answer answer = answerMapper.selectById(id);
+        if (answer == null) {
+            throw new RuntimeException("回答不存在");
+        }
+
+        if (content != null && !content.trim().isEmpty()) {
+            answer.setContent(content);
+            answer.setUpdatedAt(LocalDateTime.now());
+        }
+
+        answerMapper.updateById(answer);
+        return answer;
+    }
     
     public Long countMyAnswers(Long teacherId) {
         LambdaQueryWrapper<Answer> wrapper = new LambdaQueryWrapper<>();

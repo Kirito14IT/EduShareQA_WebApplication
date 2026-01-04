@@ -102,15 +102,28 @@ public class QuestionService {
         return question;
     }
     
-    public PagedResponse<Question> getQuestions(Long courseId, String status, String keyword,
+    public PagedResponse<Question> getQuestions(Long courseId, String status, String keyword, Long teacherId,
                                                Integer page, Integer pageSize, HttpServletRequest request) {
-        String token = getTokenFromRequest(request);
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        
         Page<Question> pageObj = new Page<>(page, pageSize);
         LambdaQueryWrapper<Question> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Question::getStudentId, userId);
-        
+
+        // 如果有teacherId参数，搜索该教师的所有课程的问题；否则只返回当前学生的问题
+        if (teacherId != null) {
+            // 查找该教师的所有课程ID
+            List<Long> courseIds = courseTeacherMapper.selectCourseIdsByTeacherId(teacherId);
+            if (!courseIds.isEmpty()) {
+                wrapper.in(Question::getCourseId, courseIds);
+            } else {
+                // 如果教师没有课程，返回空结果
+                return PagedResponse.of(new ArrayList<>(), page, pageSize, 0L);
+            }
+        } else {
+            // 没有teacherId时，只返回当前学生的问题
+            String token = getTokenFromRequest(request);
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            wrapper.eq(Question::getStudentId, userId);
+        }
+
         if (courseId != null) {
             wrapper.eq(Question::getCourseId, courseId);
         }
@@ -121,9 +134,9 @@ public class QuestionService {
             wrapper.and(w -> w.like(Question::getTitle, keyword)
                     .or().like(Question::getContent, keyword));
         }
-        
+
         wrapper.orderByDesc(Question::getCreatedAt);
-        
+
         Page<Question> result = questionMapper.selectPage(pageObj, wrapper);
         return PagedResponse.of(result.getRecords(), page, pageSize, result.getTotal());
     }
@@ -161,11 +174,22 @@ public class QuestionService {
         return question;
     }
 
-    public PagedResponse<Question> getAllQuestions(Long courseId, String status, String keyword,
+    public PagedResponse<Question> getAllQuestions(Long courseId, String status, String keyword, Long teacherId,
                                                   Integer page, Integer pageSize) {
         Page<Question> pageObj = new Page<>(page, pageSize);
         LambdaQueryWrapper<Question> wrapper = new LambdaQueryWrapper<>();
-        
+
+        if (teacherId != null) {
+            // 查找该教师的所有课程ID
+            List<Long> courseIds = courseTeacherMapper.selectCourseIdsByTeacherId(teacherId);
+            if (!courseIds.isEmpty()) {
+                wrapper.in(Question::getCourseId, courseIds);
+            } else {
+                // 如果教师没有课程，返回空结果
+                return PagedResponse.of(new ArrayList<>(), page, pageSize, 0L);
+            }
+        }
+
         if (courseId != null) {
             wrapper.eq(Question::getCourseId, courseId);
         }
@@ -176,9 +200,9 @@ public class QuestionService {
             wrapper.and(w -> w.like(Question::getTitle, keyword)
                     .or().like(Question::getContent, keyword));
         }
-        
+
         wrapper.orderByDesc(Question::getCreatedAt);
-        
+
         Page<Question> result = questionMapper.selectPage(pageObj, wrapper);
         return PagedResponse.of(result.getRecords(), page, pageSize, result.getTotal());
     }
@@ -361,6 +385,28 @@ public class QuestionService {
     @Transactional
     public void adminDeleteQuestion(Long id) {
         questionMapper.deleteById(id);
+    }
+
+    @Transactional
+    public Question adminUpdateQuestion(Long id, Long courseId, String title, String content) {
+        Question question = questionMapper.selectById(id);
+        if (question == null) {
+            throw new RuntimeException("问题不存在");
+        }
+
+        if (courseId != null) {
+            question.setCourseId(courseId);
+        }
+        if (title != null && !title.trim().isEmpty()) {
+            question.setTitle(title);
+        }
+        if (content != null && !content.trim().isEmpty()) {
+            question.setContent(content);
+        }
+        question.setUpdatedAt(LocalDateTime.now());
+
+        questionMapper.updateById(question);
+        return question;
     }
     
     private String getTokenFromRequest(HttpServletRequest request) {

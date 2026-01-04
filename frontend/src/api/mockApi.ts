@@ -631,6 +631,24 @@ const mockApi: RealApi = {
     answers.splice(index, 1)
   },
 
+  async adminUpdateQuestion(id: number, question: Partial<QuestionCreate>): Promise<Question> {
+    await delay()
+    const index = questions.findIndex((q) => q.id === id)
+    if (index === -1) throw new Error('问题不存在')
+    const updatedQuestion = { ...questions[index], ...question }
+    questions[index] = updatedQuestion
+    return updatedQuestion
+  },
+
+  async adminUpdateAnswer(id: number, content: string): Promise<AnswerDetail> {
+    await delay()
+    const index = answers.findIndex((a) => a.id === id)
+    if (index === -1) throw new Error('回答不存在')
+    const updatedAnswer = { ...answers[index], content }
+    answers[index] = updatedAnswer
+    return updatedAnswer
+  },
+
   // 教师模块
   async getTeacherDashboardStats(): Promise<TeacherDashboardStats> {
     await delay()

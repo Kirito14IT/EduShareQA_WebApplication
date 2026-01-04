@@ -2,20 +2,38 @@ import httpClient from './httpClient'
 import axios from 'axios'
 import env from '../config/env'
 import type {
+  AnswerCreate,
+  AnswerDetail,
   ApiLoginResponse,
   AuthTokens,
+  Course,
+  CourseCreate,
+  CourseQueryParams,
   LoginRequest,
   NotificationCounts,
   NotificationDetail,
+  PagedCourseList,
   PagedQuestionList,
   PagedResourceList,
+  PagedStudentList,
+  PagedTeacherList,
+  PagedTeacherQuestionList,
+  PasswordChange,
+  ProfileUpdate,
   Question,
   QuestionCreate,
+  QuestionDetail,
   QuestionQueryParams,
   RegisterRequest,
   Resource,
+  ResourceDetail,
   ResourceMetadata,
   ResourceQueryParams,
+  StudentQueryParams,
+  Teacher,
+  TeacherCreate,
+  TeacherDashboardStats,
+  TeacherQueryParams,
   UserProfile,
 } from '../types/api'
 
@@ -57,27 +75,6 @@ export interface ResourceUploadPayload {
 export interface QuestionCreatePayload extends QuestionCreate {
   attachments?: File[]
 }
-
-import type {
-  AnswerCreate,
-  AnswerDetail,
-  Course,
-  CourseCreate,
-  CourseQueryParams,
-  PagedCourseList,
-  PasswordChange,
-  PagedTeacherList,
-  PagedTeacherQuestionList,
-  PagedStudentList,
-  ProfileUpdate,
-  QuestionDetail,
-  ResourceDetail,
-  Teacher,
-  TeacherCreate,
-  TeacherDashboardStats,
-  TeacherQueryParams,
-  StudentQueryParams,
-} from '../types/api'
 
 export interface RealApi {
   // 认证
@@ -122,6 +119,8 @@ export interface RealApi {
   getAllQuestions(params: QuestionQueryParams): Promise<PagedQuestionList>
   adminDeleteQuestion(id: number): Promise<void>
   adminDeleteAnswer(id: number): Promise<void>
+  adminUpdateQuestion(id: number, question: Partial<QuestionCreate>): Promise<Question>
+  adminUpdateAnswer(id: number, content: string): Promise<AnswerDetail>
   // 教师模块
   getTeacherDashboardStats(): Promise<TeacherDashboardStats>
   getTeacherQuestions(params: QuestionQueryParams): Promise<PagedTeacherQuestionList>
@@ -266,7 +265,7 @@ const realApi: RealApi = {
   },
 
   async getTeachers(params: TeacherQueryParams) {
-    const { data } = await httpClient.get<PagedTeacherList>('/admin/teachers', { params })
+    const { data } = await httpClient.get<PagedTeacherList>('/student/teachers', { params })
     return data
   },
 
@@ -322,6 +321,16 @@ const realApi: RealApi = {
 
   async adminDeleteAnswer(id: number) {
     await httpClient.delete(`/admin/answers/${id}`)
+  },
+
+  async adminUpdateQuestion(id: number, question: Partial<QuestionCreate>) {
+    const { data } = await httpClient.put<Question>(`/admin/questions/${id}`, question)
+    return data
+  },
+
+  async adminUpdateAnswer(id: number, content: string) {
+    const { data } = await httpClient.put<AnswerDetail>(`/admin/answers/${id}`, { content })
+    return data
   },
 
   // 教师模块

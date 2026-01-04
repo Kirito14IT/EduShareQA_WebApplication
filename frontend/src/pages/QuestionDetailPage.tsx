@@ -4,52 +4,7 @@ import { motion } from 'framer-motion'
 import api from '../api'
 import { useAuthStore } from '../store/authStore'
 import type { PagedCourseList } from '../types/api'
-import env from '../config/env'
-
-const getFileUrl = (path: string, token?: string) => {
-  if (!path) return '#'
-  
-  let url = path
-  
-  // 如果不是完整 URL，则拼接 Base URL
-  if (!path.startsWith('http://') && !path.startsWith('https://')) {
-      const baseUrl = env.apiBaseUrl.endsWith('/') ? env.apiBaseUrl.slice(0, -1) : env.apiBaseUrl
-      const cleanPath = path.startsWith('/') ? path : '/' + path
-      
-      // 如果 path 已经包含 uploads 且 apiBaseUrl 也可能包含，这里做个简单去重判断
-      // 假设 apiBaseUrl = .../api, path = /uploads/... -> .../api/uploads/...
-      // 假设 path = question-attachments/... -> .../api/uploads/question-attachments/... (需要后端配合，目前 FileController 是 /uploads 开头)
-      
-      // 现在的后端返回 path 似乎是 relative path (e.g. year/month/file) 或者 /uploads/ 开头的 path
-      // 根据 FileController，下载路径是 /uploads/{type}/{year}/{month}/{filename}
-      // 但是 QuestionService 保存时返回的是 filePath (e.g. year/month/filename 或完整路径)
-      // 让我们假设 path 已经是相对路径或者 /uploads 开头的路径
-      
-      if (path.startsWith('/uploads')) {
-          url = `${baseUrl}${cleanPath}`
-      } else if (path.includes('/')) {
-           // 假设是 relative path，需要加上 /uploads/question-attachments/ ??? 
-           // 不，后端 FileService 返回的 url 已经是完整的 url (getFileUrl 方法)
-           // 但是这里前端接收到的可能是相对路径
-           // 如果是相对路径，我们最好保守一点，只处理 /uploads 开头的
-           if (!path.startsWith('/')) {
-               url = `${baseUrl}/uploads/${path}`
-           } else {
-               url = `${baseUrl}${path}`
-           }
-      } else {
-          url = `${baseUrl}/uploads/${path}`
-      }
-  }
-
-  // Append token
-  if (token) {
-      const separator = url.includes('?') ? '&' : '?'
-      return `${url}${separator}token=${token}`
-  }
-  
-  return url
-}
+import { getFileUrl } from '../utils/file'
 
 const QuestionDetailPage = () => {
   const navigate = useNavigate()

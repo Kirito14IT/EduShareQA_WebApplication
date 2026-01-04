@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import api from '../api'
-import env from '../config/env'
 import { useAuthStore } from '../store/authStore'
 import type { PagedCourseList } from '../types/api'
+import { getFileUrl } from '../utils/file'
 
 const ResourceDetailPage = () => {
   const navigate = useNavigate()
@@ -26,19 +26,7 @@ const ResourceDetailPage = () => {
   })
 
   const downloadUrl = useMemo(() => {
-    if (!resource?.fileUrl) return undefined
-    if (resource.fileUrl.startsWith('http')) return resource.fileUrl
-    // env.apiBaseUrl usually includes /api, and fileUrl starts with /student...
-    // We need to ensure we don't double slash or miss slash, but usually strict concat is risky if base has trailing slash.
-    // env.apiBaseUrl defaults to http://localhost:8080/api (no trailing slash)
-    const baseUrl = env.apiBaseUrl.endsWith('/') ? env.apiBaseUrl.slice(0, -1) : env.apiBaseUrl
-    const path = resource.fileUrl.startsWith('/') ? resource.fileUrl : '/' + resource.fileUrl
-    
-    // Append token if available
-    if (token) {
-        return `${baseUrl}${path}?token=${token}`
-    }
-    return `${baseUrl}${path}`
+    return getFileUrl(resource?.fileUrl, token)
   }, [resource, token])
 
   if (isLoading) {

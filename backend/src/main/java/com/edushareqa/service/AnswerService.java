@@ -111,17 +111,40 @@ public class AnswerService {
     public void deleteAnswer(HttpServletRequest request, Long id) {
         String token = getTokenFromRequest(request);
         Long userId = jwtUtil.getUserIdFromToken(token);
-        
+
         Answer answer = answerMapper.selectById(id);
         if (answer == null) {
             throw new RuntimeException("回答不存在");
         }
-        
+
         if (!answer.getTeacherId().equals(userId)) {
             throw new RuntimeException("无权删除此回答");
         }
-        
+
         answerMapper.deleteById(id);
+    }
+
+    @Transactional
+    public AnswerDetail updateAnswer(HttpServletRequest request, Long id, String content) {
+        String token = getTokenFromRequest(request);
+        Long userId = jwtUtil.getUserIdFromToken(token);
+
+        Answer answer = answerMapper.selectById(id);
+        if (answer == null) {
+            throw new RuntimeException("回答不存在");
+        }
+
+        if (!answer.getTeacherId().equals(userId)) {
+            throw new RuntimeException("无权修改此回答");
+        }
+
+        if (content != null && !content.trim().isEmpty()) {
+            answer.setContent(content);
+            answer.setUpdatedAt(LocalDateTime.now());
+            answerMapper.updateById(answer);
+        }
+
+        return toAnswerDetail(answer);
     }
 
     @Transactional

@@ -36,6 +36,12 @@ public class TeacherAnswerController {
         }
     }
     
+    @PutMapping("/{id}")
+    public ApiResponse<AnswerDetail> updateAnswer(@PathVariable Long id, @RequestBody String content, HttpServletRequest request) {
+        AnswerDetail answer = answerService.updateAnswer(request, id, content);
+        return ApiResponse.success(answer);
+    }
+
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteAnswer(@PathVariable Long id, HttpServletRequest request) {
         answerService.deleteAnswer(request, id);

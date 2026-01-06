@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
-import { FiSend, FiX } from 'react-icons/fi'
+import { FiSend, FiX, FiEdit2, FiTrash2, FiCheck, FiX as FiXCancel } from 'react-icons/fi'
 import api from '../../api'
 import type { AnswerCreate } from '../../types/api'
 
@@ -15,6 +15,8 @@ const TeacherAnswerPage = () => {
   const [answerContent, setAnswerContent] = useState('')
   const [attachments, setAttachments] = useState<File[]>([])
   const [isSuccess, setIsSuccess] = useState(false)
+  const [editingAnswerId, setEditingAnswerId] = useState<number | null>(null)
+  const [editingContent, setEditingContent] = useState('')
 
   const { data: question, isLoading } = useQuery({
     queryKey: ['teacher-question', id],
@@ -39,6 +41,33 @@ const TeacherAnswerPage = () => {
     },
   })
 
+  const updateAnswerMutation = useMutation({
+    mutationFn: ({ id, content }: { id: number; content: string }) =>
+      api.updateAnswer(id, { content }),
+    onSuccess: () => {
+      toast.success('回答修改成功！', { icon: '✅' })
+      queryClient.invalidateQueries({ queryKey: ['teacher-question', id] })
+      setEditingAnswerId(null)
+      setEditingContent('')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || '修改失败')
+    },
+  })
+
+  const deleteAnswerMutation = useMutation({
+    mutationFn: (answerId: number) => api.deleteAnswer(answerId),
+    onSuccess: () => {
+      toast.success('回答删除成功！', { icon: '✅' })
+      queryClient.invalidateQueries({ queryKey: ['teacher-question', id] })
+      queryClient.invalidateQueries({ queryKey: ['teacher-questions'] })
+      queryClient.invalidateQueries({ queryKey: ['teacher-dashboard-stats'] })
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || '删除失败')
+    },
+  })
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!id || !answerContent.trim()) {
@@ -50,6 +79,33 @@ const TeacherAnswerPage = () => {
       content: answerContent,
       attachments,
     })
+  }
+
+  const handleEditAnswer = (answerId: number, currentContent: string) => {
+    setEditingAnswerId(answerId)
+    setEditingContent(currentContent)
+  }
+
+  const handleSaveEdit = () => {
+    if (!editingAnswerId || !editingContent.trim()) {
+      toast.error('请输入回答内容')
+      return
+    }
+    updateAnswerMutation.mutate({
+      id: editingAnswerId,
+      content: editingContent,
+    })
+  }
+
+  const handleCancelEdit = () => {
+    setEditingAnswerId(null)
+    setEditingContent('')
+  }
+
+  const handleDeleteAnswer = (answerId: number) => {
+    if (window.confirm('确定要删除这个回答吗？此操作不可撤销。')) {
+      deleteAnswerMutation.mutate(answerId)
+    }
   }
 
   if (isLoading) {
@@ -96,8 +152,61 @@ const TeacherAnswerPage = () => {
                 <div className="answer-header">
                   <span className="answer-author">{answer.teacherName ?? '教师'}</span>
                   <span className="answer-time">{new Date(answer.createdAt).toLocaleString()}</span>
+                  <div className="answer-actions">
+                    {editingAnswerId === answer.id ? (
+                      <>
+                        <motion.button
+                          className="action-button save"
+                          onClick={handleSaveEdit}
+                          disabled={updateAnswerMutation.isPending}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <FiCheck /> {updateAnswerMutation.isPending ? '保存中…' : '保存'}
+                        </motion.button>
+                        <motion.button
+                          className="action-button cancel"
+                          onClick={handleCancelEdit}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <FiXCancel /> 取消
+                        </motion.button>
+                      </>
+                    ) : (
+                      <>
+                        <motion.button
+                          className="action-button edit"
+                          onClick={() => handleEditAnswer(answer.id, answer.content)}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <FiEdit2 /> 编辑
+                        </motion.button>
+                        <motion.button
+                          className="action-button delete"
+                          onClick={() => handleDeleteAnswer(answer.id)}
+                          disabled={deleteAnswerMutation.isPending}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <FiTrash2 /> {deleteAnswerMutation.isPending ? '删除中…' : '删除'}
+                        </motion.button>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div className="answer-content">{answer.content}</div>
+                {editingAnswerId === answer.id ? (
+                  <textarea
+                    className="edit-answer-textarea"
+                    value={editingContent}
+                    onChange={(e) => setEditingContent(e.target.value)}
+                    rows={4}
+                    placeholder="请输入回答内容..."
+                  />
+                ) : (
+                  <div className="answer-content">{answer.content}</div>
+                )}
               </div>
             ))}
           </div>

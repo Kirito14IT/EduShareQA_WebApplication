@@ -73,9 +73,14 @@ const LoginPage = () => {
           </motion.button>
         </form>
 
-        <p className="muted">
-          还没有账号？<Link to="/register">立即注册</Link>
-        </p>
+        <div className="form-footer">
+          <p className="muted">
+            还没有账号？<Link to="/register">立即注册</Link>
+          </p>
+          <p className="muted">
+            <Link to="/forgot-password">忘记密码？</Link>
+          </p>
+        </div>
         <div className="test-accounts">
           <p className="muted small">测试账号：</p>
           <div className="test-account-list">

@@ -3,7 +3,13 @@
 ## 项目简介
 
 EduShareQA 是一个为高校学生和教师提供学习资料共享与互动答疑的平台系统。系统支持学生上传学习资料、提出学习问题，教师进行答疑，管理员进行平台维护。
-
+## 贡献度:
+- 王志华：23%
+- 王嘉程：20%
+- 胡馨：18%
+- 吴与泽:18%
+- 周博涵：18%
+- 排名不分前后
 ## 技术栈
 
 ### 前端
@@ -26,6 +32,7 @@ EduShareQA 是一个为高校学生和教师提供学习资料共享与互动答
 2. **JDK** 17+
 3. **Maven** 3.6+
 4. **MySQL** 8.0+ (端口 3306)
+5. **QQ邮箱** (用于发送验证码邮件)
 
 ### 1. 数据库初始化
 
@@ -47,6 +54,55 @@ cd backend
 
 # Windows
 start.bat
+
+# 或者直接运行
+mvn spring-boot:run
+```
+
+### 3. 配置邮件服务 (QQ邮箱) - 忘记密码功能
+
+忘记密码功能需要配置QQ邮箱来发送验证码邮件。
+
+#### 快速配置（推荐）
+
+运行配置脚本：
+
+```bash
+# Windows: 双击运行
+backend\setup-email.bat
+
+# 或者命令行
+cd backend && setup-email.bat
+```
+
+按照提示输入QQ邮箱和授权码即可自动配置。
+
+#### 手动配置
+
+1. **开启QQ邮箱SMTP服务**
+   - 登录 [QQ邮箱网页版](https://mail.qq.com)
+   - 设置 → 账户 → SMTP服务 → 开启
+   - 获取16位授权码（不是QQ密码！）
+
+2. **设置环境变量**
+
+   ```bash
+   # Windows环境变量
+   setx MAIL_USERNAME "你的QQ邮箱@qq.com" /M
+   setx MAIL_PASSWORD "你的16位授权码" /M
+
+   # 或者启动时指定
+   java -DMAIL_USERNAME=你的QQ邮箱@qq.com -DMAIL_PASSWORD=你的16位授权码 -jar target/edushareqa-backend-1.0.0.jar
+   ```
+
+#### 测试配置
+
+```bash
+# 测试邮件发送
+curl -X POST "http://localhost:8080/api/auth/test-email?email=test@example.com"
+```
+
+如果收到邮件说明配置成功。
 
 # Linux/Mac
 mvn spring-boot:run

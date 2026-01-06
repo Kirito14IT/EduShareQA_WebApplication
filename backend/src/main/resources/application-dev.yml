@@ -4,6 +4,11 @@ spring:
     username: clouduser
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+      data-locations: classpath:db/init-data.sql
   
   servlet:
     multipart:
@@ -14,7 +19,22 @@ spring:
   jackson:
     time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss
-    
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: ${MAIL_USERNAME:your_qq_email@qq.com}
+    password: ${MAIL_PASSWORD:your_qq_email_authorization_code}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: smtp.qq.com
+    default-encoding: UTF-8
+
 server:
   port: 8080
   servlet:
@@ -22,6 +42,9 @@ server:
 
 app:
   base-url: http://localhost:8080/api
+  mail:
+    from: ${MAIL_USERNAME:your_qq_email@qq.com}
+    reset-password-subject: EduShareQA 密码重置验证码
 
 # MyBatis Plus配置
 mybatis-plus:

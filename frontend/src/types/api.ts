@@ -27,6 +27,21 @@ export interface RegisterRequest {
   schoolId?: string
 }
 
+export interface ForgotPasswordRequest {
+  email: string
+}
+
+export interface VerifyResetTokenRequest {
+  email: string
+  token: string
+}
+
+export interface ResetPasswordRequest {
+  email: string
+  token: string
+  newPassword: string
+}
+
 export interface ResourceMetadata {
   title: string
   summary?: string

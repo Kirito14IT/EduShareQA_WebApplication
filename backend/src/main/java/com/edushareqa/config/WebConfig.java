@@ -16,9 +16,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 移除静态资源映射，由 FileController 接管文件下载
-        // Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
-        // registry.addResourceHandler("/uploads/**")
-        //        .addResourceLocations(uploadPath.toUri().toString() + "/");
+        // 只配置 /uploads/** 路径的静态资源
+        Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
+        registry.addResourceHandler("/uploads/**")
+               .addResourceLocations(uploadPath.toUri().toString() + "/");
     }
 }

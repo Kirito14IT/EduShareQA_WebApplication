@@ -177,20 +177,21 @@ public class ResourceService {
         LambdaQueryWrapper<Resource> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Resource::getStatus, "ACTIVE");
         
-        // 权限控制：如果用户是学生，且资源是 COURSE_ONLY，则只能看已选修课程的资源
+        // 权限控制：学生只能看到自己已选修课程的资源
         String token = getTokenFromRequest(request);
         if (token != null) {
             Long userId = jwtUtil.getUserIdFromToken(token);
             List<String> roles = jwtUtil.getRolesFromToken(token);
-            
+
             if (!roles.contains("ADMIN") && !roles.contains("TEACHER")) {
                 List<Long> enrolledCourseIds = courseStudentMapper.selectCourseIdsByStudentId(userId);
-                
+
                 if (enrolledCourseIds.isEmpty()) {
-                    wrapper.eq(Resource::getVisibility, "PUBLIC");
+                    // 新注册学生没有被分配课程，不应该看到任何资源
+                    wrapper.eq(Resource::getId, -1); // 永远为false的条件
                 } else {
-                    wrapper.and(w -> w.eq(Resource::getVisibility, "PUBLIC")
-                            .or(orWrapper -> orWrapper.in(Resource::getCourseId, enrolledCourseIds)));
+                    // 学生只能看到自己已选修课程的资源（包括PUBLIC和COURSE_ONLY）
+                    wrapper.in(Resource::getCourseId, enrolledCourseIds);
                 }
             }
         }

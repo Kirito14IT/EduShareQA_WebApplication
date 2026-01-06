@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './components/layout/DashboardLayout'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResourceListPage from './pages/ResourceListPage'
 import ResourceDetailPage from './pages/ResourceDetailPage'
 import ResourceUploadPage from './pages/ResourceUploadPage'
@@ -39,6 +40,7 @@ function App() {
       <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>

@@ -9,6 +9,7 @@ import type {
   Course,
   CourseCreate,
   CourseQueryParams,
+  ForgotPasswordRequest,
   LoginRequest,
   NotificationCounts,
   NotificationDetail,
@@ -25,6 +26,7 @@ import type {
   QuestionDetail,
   QuestionQueryParams,
   RegisterRequest,
+  ResetPasswordRequest,
   Resource,
   ResourceDetail,
   ResourceMetadata,
@@ -35,6 +37,7 @@ import type {
   TeacherDashboardStats,
   TeacherQueryParams,
   UserProfile,
+  VerifyResetTokenRequest,
 } from '../types/api'
 
 // 创建一个不带认证拦截器的HTTP客户端用于登录
@@ -80,6 +83,9 @@ export interface RealApi {
   // 认证
   login(payload: LoginRequest): Promise<ApiLoginResponse>
   register(payload: RegisterRequest): Promise<ApiLoginResponse>
+  forgotPassword(payload: ForgotPasswordRequest): Promise<void>
+  verifyResetToken(payload: VerifyResetTokenRequest): Promise<void>
+  resetPassword(payload: ResetPasswordRequest): Promise<void>
   // 学生资源
   getResources(params: ResourceQueryParams): Promise<PagedResourceList>
   getResourceById(id: number): Promise<ResourceDetail>
@@ -147,6 +153,18 @@ const realApi: RealApi = {
   async register(payload) {
     await httpClientWithoutAuth.post('/auth/register', payload)
     return realApi.login({ username: payload.username, password: payload.password })
+  },
+
+  async forgotPassword(payload) {
+    await httpClientWithoutAuth.post('/auth/forgot-password', payload)
+  },
+
+  async verifyResetToken(payload) {
+    await httpClientWithoutAuth.post('/auth/verify-reset-token', payload)
+  },
+
+  async resetPassword(payload) {
+    await httpClientWithoutAuth.post('/auth/reset-password', payload)
   },
 
   async getResources(params) {

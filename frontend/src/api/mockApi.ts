@@ -6,6 +6,7 @@ import type {
   Course,
   CourseCreate,
   CourseQueryParams,
+  ForgotPasswordRequest,
   LoginRequest,
   NotificationCounts,
   NotificationDetail,
@@ -22,6 +23,7 @@ import type {
   QuestionDetail,
   QuestionQueryParams,
   RegisterRequest,
+  ResetPasswordRequest,
   Resource,
   ResourceDetail,
   ResourceMetadata,
@@ -33,6 +35,7 @@ import type {
   TeacherDashboardStats,
   TeacherQueryParams,
   UserProfile,
+  VerifyResetTokenRequest,
 } from '../types/api'
 import type { QuestionCreatePayload, RealApi, ResourceUploadPayload } from './realApi'
 import { useAuthStore } from '../store/authStore'
@@ -261,6 +264,37 @@ const mockApi: RealApi = {
     }
     users.push(newUser)
     return mockApi.login({ username: payload.username, password: payload.password })
+  },
+
+  async forgotPassword(payload: ForgotPasswordRequest): Promise<void> {
+    await delay()
+    const user = users.find((u) => u.email === payload.email)
+    if (!user) {
+      throw new Error('邮箱不存在')
+    }
+    // 模拟发送验证码（在控制台输出）
+    const code = Math.floor(100000 + Math.random() * 900000).toString()
+    console.log(`忘记密码验证码发送到 ${payload.email}: ${code}`)
+  },
+
+  async verifyResetToken(payload: VerifyResetTokenRequest): Promise<void> {
+    await delay()
+    // 模拟验证码验证（这里简单通过）
+    if (payload.token !== '123456') {
+      throw new Error('验证码无效')
+    }
+  },
+
+  async resetPassword(payload: ResetPasswordRequest): Promise<void> {
+    await delay()
+    const user = users.find((u) => u.email === payload.email)
+    if (!user) {
+      throw new Error('邮箱不存在')
+    }
+    if (payload.token !== '123456') {
+      throw new Error('验证码无效')
+    }
+    user.password = payload.newPassword
   },
 
   async getResources(params: ResourceQueryParams = {}): Promise<PagedResourceList> {

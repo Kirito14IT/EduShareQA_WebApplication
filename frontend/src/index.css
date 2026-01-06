@@ -524,8 +524,10 @@ td {
 .answer-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .answer-author {
@@ -542,6 +544,81 @@ td {
   line-height: 1.8;
   color: #0f172a;
   white-space: pre-wrap;
+}
+
+.answer-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.action-button.edit {
+  background-color: #f59e0b;
+  color: #fff;
+}
+
+.action-button.edit:hover {
+  background-color: #d97706;
+  transform: translateY(-1px);
+}
+
+.action-button.delete {
+  background-color: #ef4444;
+  color: #fff;
+}
+
+.action-button.delete:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+}
+
+.action-button.save {
+  background-color: #10b981;
+  color: #fff;
+}
+
+.action-button.save:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+}
+
+.action-button.cancel {
+  background-color: #6b7280;
+  color: #fff;
+}
+
+.action-button.cancel:hover {
+  background-color: #4b5563;
+  transform: translateY(-1px);
+}
+
+.edit-answer-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  resize: vertical;
+  margin-top: 0.5rem;
+}
+
+.edit-answer-textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* 模态框样式 */

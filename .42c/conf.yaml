@@ -1,3 +1,0 @@
-apis:
-  docs/openapi.yaml:
-    alias: edushareqa-api
